@@ -1,0 +1,18 @@
+[package]
+name = "berechenbarkeit-lib"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.78"
+clap = { version = "4.4.12", features = ["derive"] }
+once_cell = "1.19.0"
+pdf-extract = "0.7.2"
+regex = "1.10.2"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.111"
+thiserror = "1.0.56"
+time = { version = "0.3.31", features = ["local-offset", "serde", "serde-human-readable"] }
+yap = "0.12.0"

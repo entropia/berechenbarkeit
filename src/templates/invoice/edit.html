@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Rechnung</h2>
+<h3>{{ invoice.vendor }} – {{ invoice.invoice_number }}</h3>
+
+<form id="invoice-edit-form" method="post">
+    {% for ii in invoice_items %}
+    <div class="mb-3 input-group has-validation">
+        <label for="form-invoice-item-{{ ii.id.unwrap() }}" class="form-label">{{ ii.description }} – {{ ii.amount }}x {{ ii.net_price_single }}&euro; = {{ ii.net_price_total }}&euro; net / VAT: {{ ii.vat }}%</label>
+        <select class="form-select" id="form-invoice-item-{{ ii.id.unwrap() }}" name="{{ ii.id.unwrap() }}">
+            <option {% if ii.cost_centre_id.is_none() %}selected{% endif %}  value="">Kostenstelle auswählen</option>
+            {% for cc in cost_centres %}
+            <option {% if ii.cost_centre_id.is_some() && ii.cost_centre_id.unwrap() == cc.id %}selected{% endif %} value="{{cc.id}}">{{cc.name}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Speichern</button>
+</form>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        'use strict'
+        let form = document.querySelector('#invoice-edit-form')
+        form.checkValidity()
+        form.addEventListener('change', function (event) {
+            form.checkValidity()
+        })
+    })()
+</script>
+{% endblock extra_js %}

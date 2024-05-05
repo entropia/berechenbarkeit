@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT invoice_item.id as \"id?\", invoice_item.invoice_id, invoice_item.typ, invoice_item.description, invoice_item.amount, invoice_item.net_price_single, invoice_item.net_price_total, invoice_item.vat, invoice_item.cost_centre_id as \"cost_centre_id?\", cost_centre.name as \"cost_centre?\" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id?",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "invoice_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "typ",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "net_price_single",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 6,
+        "name": "net_price_total",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 7,
+        "name": "vat",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 8,
+        "name": "cost_centre_id?",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
+        "name": "cost_centre?",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "9ede04fd9166d3342c9151f0eceb645fc7127e733e1213de0fc83f7af7ed3e96"
+}

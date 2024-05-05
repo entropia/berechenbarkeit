@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Rechnungen</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">Datum</th>
+        <th scope="col">Händler</th>
+        <th scope="col">Rechnungsnr.</th>
+        <th scope="col">Summe (Brutto)</th>
+        <th scope="col">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i in invoices %}
+    <tr>
+        <th scope="row">{{i.date}}</th>
+        <td>{{i.vendor}}</td>
+        <td>{{i.invoice_number}}</td>
+        <td>{{i.sum}}&euro;</td>
+        <td><a href="/invoice/{{i.id.unwrap()}}/edit" type="button" class="btn btn-secondary">Edit</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

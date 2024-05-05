@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Kostenstellen</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i in cost_centres %}
+    <tr>
+        <th scope="row">{{i.id}}</th>
+        <td>{{i.name}}</td>
+        <td><a href="/cost_centre/{{i.id}}/delete" type="button" class="btn btn-secondary">Löschen</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Kostenstelle hinzufügen</h3>
+<form method="post">
+    <label for="cost-centre-add-input">Name</label>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="cost-centre-add-input" name="name" />
+    </div>
+    <button class="btn btn-secondary">Hinzufügen</button>
+</form>
+{% endblock content %}
