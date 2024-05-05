@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Aufteilung nach Kostenstellen</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">Kostenstelle</th>
+        <th scope="col">VAT</th>
+        <th scope="col">Betrag</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i in sums %}
+    <tr>
+        <th scope="row">{{i.cost_centre_name}}</th>
+        <td>{{i.vat}}%</td>
+        <td>{{i.sum}}&euro;</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

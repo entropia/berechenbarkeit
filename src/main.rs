@@ -47,6 +47,7 @@ async fn main() {
         .route("/invoice/:invoice_id/edit", get(handlers::invoice::invoice_edit).post(handlers::invoice::invoice_edit_submit))
         .route("/cost_centres", get(handlers::cost_centre::cost_centre_list).post(handlers::cost_centre::cost_centre_add))
         .route("/cost_centre/:cost_centre_id/delete", get(handlers::cost_centre::cost_centre_delete))
+        .route("/summary", get(handlers::summary::summary_overview))
         .route("/", get(handlers::home::home))
         .with_state(db_pool)
         .layer(

@@ -8,7 +8,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPool;
 use time::PrimitiveDateTime;
 
-use berechenbarkeit_lib::{Invoice};
+use berechenbarkeit_lib::Invoice;
 
 type Result<T, E = sqlx::Error> = std::result::Result<T, E>;
 
@@ -119,6 +119,14 @@ pub(crate) struct DBCostCentre {
     pub name: String,
 }
 
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct CostCentreWithSum {
+    pub cost_centre_name: String,
+    pub vat: f64,
+    pub sum: f64,
+}
+
 impl DBCostCentre {
     pub(crate) async fn get_all(connection: &mut PgConnection) -> Result<Vec<DBCostCentre>> {
         sqlx::query_as!(DBCostCentre, r#"SELECT id, name FROM "cost_centre""#).fetch_all(connection).await
@@ -134,5 +142,13 @@ impl DBCostCentre {
     pub(crate) async fn delete(id: i64, connection: &mut PgConnection) -> Result<()> {
         sqlx::query!(r#"DELETE FROM "cost_centre" WHERE id=$1"#, id).execute(connection).await?;
         Ok(())
+    }
+
+    pub(crate) async fn get_summary(connection: &mut PgConnection) -> Result<Vec<CostCentreWithSum>> {
+        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.net_price_total) AS sum FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
+            cost_centre_name: x.cost_centre_name,
+            vat: x.vat,
+            sum: f64::round(x.sum.unwrap_or(0f64) * 100f64) / 100f64,
+        }).collect())
     }
 }

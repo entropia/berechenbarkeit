@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.net_price_total) AS sum FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "cost_centre_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "vat",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 2,
+        "name": "sum",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "fc1bfc1f959f457d25e94344bbf0ff76d34c9d2d9a9d32429e66e113eaffc465"
+}
