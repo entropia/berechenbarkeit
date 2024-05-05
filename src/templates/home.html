@@ -1,5 +1,19 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+    img#pridetopia {
+        width: 10vw;
+        position: fixed;
+        right: 2.5vw;
+        bottom: 2vw;
+        rotate: -15deg;
+    }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
 <h1>berechenbarkeit</h1>
-{% endblock %}
+
+<img id="pridetopia" src="/assets/Pridetropia.svg" />
+{% endblock content %}
