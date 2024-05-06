@@ -6,6 +6,7 @@ use axum::response::{IntoResponse, Redirect};
 use berechenbarkeit_lib::{InvoiceItemType, parse_pdf};
 use crate::{AppError, HtmlTemplate};
 use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
+use crate::handlers::cost_centre;
 
 
 pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseConnection, mut multipart: Multipart) -> Result<Redirect, AppError> {
@@ -75,10 +76,11 @@ pub(crate) async fn invoice_edit_submit(DatabaseConnection(mut conn): DatabaseCo
 
     for form_field in form_data.into_iter() {
         // TODO: Use bulk UPDATE
-        if form_field.1.is_empty() {
-            continue
+        let mut cost_centre = None;
+        if !form_field.1.is_empty() {
+            cost_centre = Some(i64::from_str(&form_field.1)?);
         }
-        DBInvoiceItem::update_cost_centre(i64::from_str(&form_field.0)?, i64::from_str(&form_field.1)?, &mut conn).await?;
+        DBInvoiceItem::update_cost_centre(i64::from_str(&form_field.0)?, cost_centre, &mut conn).await?;
     }
 
     Ok(Redirect::to(&format!("/invoice/{}/edit", invoice_id)))

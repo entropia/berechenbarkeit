@@ -107,7 +107,7 @@ impl DBInvoiceItem {
         sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.id as "id?", invoice_item.invoice_id, invoice_item.typ, invoice_item.description, invoice_item.amount, invoice_item.net_price_single, invoice_item.net_price_total, invoice_item.vat, invoice_item.cost_centre_id as "cost_centre_id?", cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.id"#, invoice_id).fetch_all(connection).await
     }
 
-    pub(crate) async fn update_cost_centre(id: i64, cost_centre_id: i64, connection: &mut PgConnection) -> Result<()> {
+    pub(crate) async fn update_cost_centre(id: i64, cost_centre_id: Option<i64>, connection: &mut PgConnection) -> Result<()> {
         sqlx::query!(r#"UPDATE "invoice_item" SET cost_centre_id=$1 WHERE id=$2"#, cost_centre_id, id).execute(connection).await?;
         Ok(())
     }
