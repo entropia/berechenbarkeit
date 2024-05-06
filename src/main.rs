@@ -41,6 +41,11 @@ async fn main() {
     // is migrated correctly on startup
     sqlx::migrate!().run(&db_pool).await.expect("sqlx: migration failed");
 
+    let assets_base_path = match option_env!("BERECHENBARKEIT_STATIC_BASE_PATH") {
+        Some(env) => env.to_string(),
+        None => "src/assets".to_owned(),
+    };
+
     let app = Router::new()
         .route("/invoices", get(handlers::invoice::invoice_list))
         .route("/invoice/upload", post(handlers::invoice::invoice_add_upload)).layer(DefaultBodyLimit::max(10 * 1024 * 1024))
@@ -68,7 +73,7 @@ async fn main() {
                     )
                 })
         )
-        .nest_service("/assets", ServeDir::new("src/assets"));
+        .nest_service("/assets", ServeDir::new(assets_base_path));
 
     // run our app with hyper
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
