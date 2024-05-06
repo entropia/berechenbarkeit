@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Write;
 use std::str::FromStr;
 use askama::Template;
 use axum::body::Bytes;
@@ -6,8 +8,6 @@ use axum::response::{IntoResponse, Redirect};
 use berechenbarkeit_lib::{InvoiceItemType, parse_pdf};
 use crate::{AppError, HtmlTemplate};
 use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
-use crate::handlers::cost_centre;
-
 
 pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseConnection, mut multipart: Multipart) -> Result<Redirect, AppError> {
     let mut file: Option<Bytes> = None;
@@ -22,8 +22,6 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
     let file = file.unwrap();
     // This error should never happen, as we have the HTTP form under our control
     let parsed_invoice = parse_pdf(&(file))?;
-
-
 
     let invoice_id = DBInvoice::insert(parsed_invoice.clone().into(), &mut conn).await?;
 
@@ -43,8 +41,12 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
         cost_centre: None,
     }).collect()).await?;
 
-    // let mut fileio = File::create(format!("{}/invoice-{}.pdf", app_context.config.storage_base_path, invoice_id))?;
-    // fileio.write_all(&file)?;
+    let file_storage_base_path = std::env::var("BERECHENBARKEIT_STORAGE_BASE_PATH");
+    if file_storage_base_path.is_ok() {
+        let path = format!("{}/invoice-{}.pdf", file_storage_base_path.unwrap(), invoice_id);
+        let mut fileio = File::create(path)?;
+        fileio.write_all(&file)?;
+    }
 
     Ok(Redirect::to(&format!("/invoice/{}/edit", invoice_id)))
 }
