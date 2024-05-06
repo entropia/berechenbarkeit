@@ -6,14 +6,19 @@
 
 <form id="invoice-edit-form" method="post">
     {% for ii in invoice_items %}
-    <div class="mb-3 input-group has-validation">
-        <label for="form-invoice-item-{{ ii.id.unwrap() }}" class="form-label">{{ ii.description }} – {{ ii.amount }}x {{ ii.net_price_single }}&euro; = {{ ii.net_price_total }}&euro; net / VAT: {{ ii.vat }}%</label>
-        <select class="form-select" id="form-invoice-item-{{ ii.id.unwrap() }}" name="{{ ii.id.unwrap() }}">
-            <option {% if ii.cost_centre_id.is_none() %}selected{% endif %}  value="">Kostenstelle auswählen</option>
-            {% for cc in cost_centres %}
-            <option {% if ii.cost_centre_id.is_some() && ii.cost_centre_id.unwrap() == cc.id %}selected{% endif %} value="{{cc.id}}">{{cc.name}}</option>
-            {% endfor %}
-        </select>
+    <div class="row pb-2 pt-2 border-top">
+        <div class="col-9">
+            <span>{{ ii.description }} – {{ ii.amount }}x {{ ii.net_price_single }}&euro; = {{ ii.net_price_total }}&euro; net / VAT: {{ ii.vat }}%</span>
+        </div>
+        <div class="col-3">
+            <select class="form-select" name="{{ ii.id.unwrap() }}">
+                <option {% if ii.cost_centre_id.is_none() %}selected{% endif %}  value="">Kostenstelle auswählen</option>
+                {% for cc in cost_centres %}
+                <option {% if ii.cost_centre_id.is_some() && ii.cost_centre_id.unwrap() == cc.id %}selected{% endif %} value="{{cc.id}}">{{cc.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-1"></div>
     </div>
     {% endfor %}
 
@@ -25,10 +30,24 @@
 <script>
     (function () {
         'use strict'
-        let form = document.querySelector('#invoice-edit-form')
-        form.checkValidity()
-        form.addEventListener('change', function (event) {
-            form.checkValidity()
+        const inputs = document.querySelectorAll('form#invoice-edit-form select');
+        console.log(inputs)
+        Array.from(inputs).forEach(input => {
+            if (input.value === "") {
+                input.classList.add("is-invalid")
+            } else {
+                input.classList.add("is-valid")
+            }
+
+            input.addEventListener('change', event => {
+               if (input.value === "") {
+                   input.classList.remove("is-valid")
+                   input.classList.add("is-invalid")
+               } else {
+                   input.classList.remove("is-invalid")
+                   input.classList.add("is-valid")
+               }
+            }, false)
         })
     })()
 </script>

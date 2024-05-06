@@ -19,8 +19,8 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
         }
     }
 
-    let file = file.unwrap();
     // This error should never happen, as we have the HTTP form under our control
+    let file = file.unwrap();
     let parsed_invoice = parse_pdf(&(file))?;
 
     let invoice_id = DBInvoice::insert(parsed_invoice.clone().into(), &mut conn).await?;
