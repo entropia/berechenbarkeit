@@ -9,7 +9,7 @@ use time::{error::ComponentRange, Date, PrimitiveDateTime, Time};
 use crate::{Invoice, InvoiceItem, InvoiceItemType, InvoiceMeta, InvoiceVendor};
 
 static INVOICE_ITEM: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<BEZEICHNUNG>.{1,100})\s+(?P<MENGE>\d{1,6}) ST\s+(?P<EINZELPREIS>.{1,7})\s+(?P<GESAMTPREIS>.{1,7})\s+(?P<MWST>\w)$").unwrap()
+    Regex::new(r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<BEZEICHNUNG>.{1,100})\s+(?P<MENGE>\d{1,6}) (ST|KAR)\s+(?P<EINZELPREIS>.{1,7})\s+(?P<GESAMTPREIS>.{1,7})\s+(?P<MWST>\w)$").unwrap()
 });
 static INVOICE_NUMBER: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"Einzelrechnung\s+Nr\.\s+(?P<INVOICE_NUMBER>[\.\d\/]+)").unwrap());
