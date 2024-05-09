@@ -35,6 +35,10 @@
                 </li>
             </ul>
             <form class="d-flex" id="form-upload" method="post" action="/invoice/upload" enctype="multipart/form-data">
+                <select class="form-select" name="vendor">
+                    <option selected value="metro">Metro</option>
+                    <option value="bauhaus">Bauhaus</option>
+                </select>
                 <input class="form-control" name="file" type="file" id="form-upload-input">
             </form>
         </div>

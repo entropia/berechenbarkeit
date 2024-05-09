@@ -167,6 +167,7 @@ impl TryFrom<RawMetroInvoiceItem> for InvoiceItem {
     fn try_from(value: RawMetroInvoiceItem) -> Result<Self, MetroInvoiceError> {
         Ok(InvoiceItem {
             typ: value.typ,
+            pos: None,
             article_number: value.artnr.trim().to_string(),
             description: value.bezeichnung.trim().to_string(),
             net_price_single: parse_metro_number(&value.einzelpreis)?,

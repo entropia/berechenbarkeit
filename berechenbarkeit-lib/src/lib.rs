@@ -12,18 +12,25 @@ struct Cli {
     path: PathBuf,
 }
 
-pub fn parse_pdf(pdf: &[u8]) -> anyhow::Result<Invoice> {
+pub fn parse_pdf(pdf: &[u8], vendor: InvoiceVendor) -> anyhow::Result<Invoice> {
     let text = pdf_extract::extract_text_from_mem(pdf)?;
-    return Ok(vendors::metro::invoice(&text)?);
+    return match vendor {
+        InvoiceVendor::Metro => Ok(vendors::metro::invoice(&text)?),
+        InvoiceVendor::Bauhaus => Ok(vendors::bauhaus::invoice(&text)?)
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub enum InvoiceVendor { Metro }
+pub enum InvoiceVendor {
+    Metro,
+    Bauhaus
+}
 
 impl ToString for InvoiceVendor {
     fn to_string(&self) -> String {
         match self {
             Self::Metro => "metro".to_string(),
+            Self::Bauhaus => "bauhaus".to_string(),
         }
     }
 }
@@ -45,6 +52,7 @@ pub enum InvoiceItemType {
 #[derive(Debug, Clone, Serialize)]
 pub struct InvoiceItem {
     pub typ: InvoiceItemType,
+    pub pos: Option<u32>,
     pub article_number: String,
     pub description: String,
     pub net_price_single: f64,
