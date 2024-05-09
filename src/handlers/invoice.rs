@@ -5,7 +5,7 @@ use askama::Template;
 use axum::body::Bytes;
 use axum::extract::{Multipart, Path, RawForm};
 use axum::response::{IntoResponse, Redirect};
-use berechenbarkeit_lib::{InvoiceItemType, parse_pdf};
+use berechenbarkeit_lib::{InvoiceVendor, InvoiceItemType, parse_pdf};
 use crate::{AppError, HtmlTemplate};
 use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
 
@@ -21,7 +21,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
 
     // This error should never happen, as we have the HTTP form under our control
     let file = file.unwrap();
-    let parsed_invoice = parse_pdf(&(file))?;
+    let parsed_invoice = parse_pdf(&(file), InvoiceVendor::Metro)?;
 
     let invoice_id = DBInvoice::insert(parsed_invoice.clone().into(), &mut conn).await?;
 
