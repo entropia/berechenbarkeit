@@ -11,17 +11,24 @@ use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
 
 pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseConnection, mut multipart: Multipart) -> Result<Redirect, AppError> {
     let mut file: Option<Bytes> = None;
+    let mut vendor: Option<InvoiceVendor> = None;
     while let Some(field) = multipart.next_field().await.unwrap() {
         let name = field.name().unwrap().to_string();
         let data = field.bytes().await.unwrap();
         if name == "file" {
             file = Some(data);
+        } else if name == "vendor" {
+            vendor = match std::str::from_utf8(&data)? {
+                "metro" => Some(InvoiceVendor::Metro),
+                "bauhaus" => Some(InvoiceVendor::Bauhaus),
+                &_ => None
+            }
         }
     }
 
     // This error should never happen, as we have the HTTP form under our control
     let file = file.unwrap();
-    let parsed_invoice = parse_pdf(&(file), InvoiceVendor::Metro)?;
+    let parsed_invoice = parse_pdf(&(file), vendor.unwrap())?;
 
     let invoice_id = DBInvoice::insert(parsed_invoice.clone().into(), &mut conn).await?;
 
