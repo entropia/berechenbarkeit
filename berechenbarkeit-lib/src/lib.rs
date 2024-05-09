@@ -45,6 +45,7 @@ pub enum InvoiceItemType {
 #[derive(Debug, Clone, Serialize)]
 pub struct InvoiceItem {
     pub typ: InvoiceItemType,
+    pub pos: Option<u32>,
     pub article_number: String,
     pub description: String,
     pub net_price_single: f64,
