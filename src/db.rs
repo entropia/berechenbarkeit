@@ -8,7 +8,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPool;
 use time::PrimitiveDateTime;
 
-use berechenbarkeit_lib::Invoice;
+use berechenbarkeit_lib::{Invoice, InvoiceItem};
 
 type Result<T, E = sqlx::Error> = std::result::Result<T, E>;
 
@@ -103,13 +103,40 @@ impl DBInvoiceItem {
         Ok(())
     }
 
+    pub(crate) async fn get_by_id(invoiceitem_id: i64, connection: &mut PgConnection) -> Result<DBInvoiceItem> {
+        sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.*, cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.id = $1 ORDER BY invoice_item.position,invoice_item.id"#, invoiceitem_id).fetch_one(connection).await
+    }
+
     pub(crate) async fn get_by_invoice_id(invoice_id: i64, connection: &mut PgConnection) -> Result<Vec<DBInvoiceItem>> {
         sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.*, cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.position,invoice_item.id"#, invoice_id).fetch_all(connection).await
     }
 
+    pub(crate) async fn calculate_sum_by_invoice_id(invoice_id: i64, connection: &mut PgConnection) -> Result<f64> {
+        Ok(sqlx::query!(r#"SELECT SUM(invoice_item.amount * invoice_item.net_price_single) FROM invoice_item"#).fetch_one(connection).await?.sum.unwrap_or(0f64))
+
+    }
+
+    pub(crate) async fn update_amount(id: i64, amount: f64, connection: &mut PgConnection) -> Result<()> {
+        sqlx::query!(r#"UPDATE "invoice_item" SET amount=$1 WHERE id=$2"#, amount, id).execute(connection).await?;
+        Ok(())
+    }
     pub(crate) async fn update_cost_centre(id: i64, cost_centre_id: Option<i64>, connection: &mut PgConnection) -> Result<()> {
         sqlx::query!(r#"UPDATE "invoice_item" SET cost_centre_id=$1 WHERE id=$2"#, cost_centre_id, id).execute(connection).await?;
         Ok(())
+    }
+
+    pub(crate) async fn insert(object: DBInvoiceItem, connection: &mut PgConnection) -> Result<i64> {
+        Ok(sqlx::query!(
+            r#"INSERT INTO "invoice_item" (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"#,
+            object.position,
+            object.invoice_id,
+            object.typ,
+            object.description,
+            object.amount,
+            object.net_price_single,
+            object.vat,
+            object.cost_centre_id,
+        ).fetch_one(connection).await?.id)
     }
 }
 
@@ -145,7 +172,7 @@ impl DBCostCentre {
     }
 
     pub(crate) async fn get_summary(connection: &mut PgConnection) -> Result<Vec<CostCentreWithSum>> {
-        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.net_price_total) AS sum FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
+        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
             cost_centre_name: x.cost_centre_name,
             vat: x.vat,
             sum: f64::round(x.sum.unwrap_or(0f64) * 100f64) / 100f64,

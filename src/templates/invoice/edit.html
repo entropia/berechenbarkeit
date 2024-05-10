@@ -5,20 +5,33 @@
 <h3>{{ invoice.vendor }} – {{ invoice.invoice_number }}</h3>
 
 <form id="invoice-edit-form" method="post">
+    <div class="row pb-2 pt-2 border-top">
+        <div class="col-xl-6"><b>Produkt</b></div>
+        <div class="col-xl-1"><b>Menge</b></div>
+        <div class="col-xl-1"><b>Einzelpreis (Netto)</b></div>
+        <div class="col-xl-1"><b>MwSt</b></div>
+    </div>
     {% for ii in invoice_items %}
     <div class="row pb-2 pt-2 border-top">
-        <div class="col-9">
-            <span>{{ ii.description }} – {{ ii.amount }}x {{ ii.net_price_single }}&euro; = {{ ii.net_price_total }}&euro; net / VAT: {{ ii.vat }}%</span>
+        <div class="col-xl-6">
+            <span>{{ii.description}}</span>
         </div>
-        <div class="col-3">
-            <select class="form-select" name="{{ ii.id.unwrap() }}">
-                <option {% if ii.cost_centre_id.is_none() %}selected{% endif %}  value="">Kostenstelle auswählen</option>
+        <div class="col-xl-1">
+            <input class="form-control" type="text" inputmode="numeric" pattern="[\d.]*" value="{{ii.amount}}" name="{{ ii.id.unwrap() }}-amount">
+        </div>
+        <div class="col-xl-1"><span>{{ii.net_price_single}}&euro;</span></div>
+        <div class="col-xl-1"><span>{{ii.vat}}%</span></div>
+        <div class="col-xl-2">
+            <select class="form-select" name="{{ ii.id.unwrap() }}-costcentre">
+                <option {% if ii.cost_centre_id.is_none() %}selected{% endif %} value="">Auswählen</option>
                 {% for cc in cost_centres %}
                 <option {% if ii.cost_centre_id.is_some() && ii.cost_centre_id.unwrap() == cc.id %}selected{% endif %} value="{{cc.id}}">{{cc.name}}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-1"></div>
+        <div class="col-xl-1">
+            <a data-id="{{ii.id.unwrap()}}" class="btn btn-secondary invoice-item-split-button">Split</a>
+        </div>
     </div>
     {% endfor %}
 
@@ -28,27 +41,36 @@
 
 {% block extra_js %}
 <script>
-    (function () {
-        'use strict'
-        const inputs = document.querySelectorAll('form#invoice-edit-form select');
-        console.log(inputs)
-        Array.from(inputs).forEach(input => {
-            if (input.value === "") {
-                input.classList.add("is-invalid")
-            } else {
-                input.classList.add("is-valid")
-            }
+    const form = document.querySelector("form#invoice-edit-form")
+    const inputs = document.querySelectorAll('form#invoice-edit-form select');
+    Array.from(inputs).forEach(input => {
+        if (input.value === "") {
+            input.classList.add("is-invalid")
+        } else {
+            input.classList.add("is-valid")
+        }
 
-            input.addEventListener('change', event => {
-               if (input.value === "") {
-                   input.classList.remove("is-valid")
-                   input.classList.add("is-invalid")
-               } else {
-                   input.classList.remove("is-invalid")
-                   input.classList.add("is-valid")
-               }
-            }, false)
+        input.addEventListener('change', event => {
+           if (input.value === "") {
+               input.classList.remove("is-valid")
+               input.classList.add("is-invalid")
+           } else {
+               input.classList.remove("is-invalid")
+               input.classList.add("is-valid")
+           }
+        }, false)
+    });
+
+    const buttons = document.querySelectorAll('.invoice-item-split-button');
+    Array.from(buttons).forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        fetch(`/invoice/{{invoice.id.unwrap()}}/invoiceitem/${button.dataset.id}/split`, {
+          method: "POST"
+        }).then(res => {
+          form.submit()
         })
-    })()
+      })
+    })
 </script>
 {% endblock extra_js %}

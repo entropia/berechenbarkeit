@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"invoice_item\" (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Varchar",
+        "Varchar",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "18ca3f3b7e101b5029517016cdc4f073cc2f8574e125ad16e48b075e08620b63"
+}
