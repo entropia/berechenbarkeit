@@ -84,7 +84,6 @@ pub(crate) struct DBInvoiceItem {
     pub description: String,
     pub amount: f64,
     pub net_price_single: f64,
-    pub net_price_total: f64,
     pub vat: f64,
     pub cost_centre_id: Option<i64>,
     pub cost_centre: Option<String>,

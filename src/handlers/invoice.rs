@@ -43,7 +43,6 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
         description: i.description.clone(),
         amount: i.amount,
         net_price_single: i.net_price_single,
-        net_price_total: i.net_total_price,
         vat: i.vat,
         cost_centre_id: None,
         cost_centre: None,
