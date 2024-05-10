@@ -42,11 +42,11 @@ pub(crate) struct DBInvoice {
 
 impl DBInvoice {
     pub(crate) async fn get_all(connection: &mut PgConnection) -> Result<Vec<DBInvoice>> {
-        sqlx::query_as!(DBInvoice, r#"SELECT id as "id?", vendor, invoice_number, sum, date, payment_type as "payment_type?" FROM "invoice""#).fetch_all(connection).await
+        sqlx::query_as!(DBInvoice, r#"SELECT * FROM "invoice""#).fetch_all(connection).await
     }
 
     pub(crate) async fn get_by_id(id: i64, connection: &mut PgConnection) -> Result<DBInvoice> {
-        sqlx::query_as!(DBInvoice, r#"SELECT id as "id?", vendor, invoice_number, sum, date, payment_type as "payment_type?" FROM "invoice" WHERE id=$1"#, id).fetch_one(connection).await
+        sqlx::query_as!(DBInvoice, r#"SELECT * FROM "invoice" WHERE id=$1"#, id).fetch_one(connection).await
     }
 
     pub(crate) async fn insert(object: DBInvoice, connection: &mut PgConnection) -> Result<i64> {
@@ -104,7 +104,7 @@ impl DBInvoiceItem {
     }
 
     pub(crate) async fn get_by_invoice_id(invoice_id: i64, connection: &mut PgConnection) -> Result<Vec<DBInvoiceItem>> {
-        sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.id as "id?", invoice_item.invoice_id, invoice_item.typ, invoice_item.description, invoice_item.amount, invoice_item.net_price_single, invoice_item.net_price_total, invoice_item.vat, invoice_item.cost_centre_id as "cost_centre_id?", cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.id"#, invoice_id).fetch_all(connection).await
+        sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.*, cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.position,invoice_item.id"#, invoice_id).fetch_all(connection).await
     }
 
     pub(crate) async fn update_cost_centre(id: i64, cost_centre_id: Option<i64>, connection: &mut PgConnection) -> Result<()> {

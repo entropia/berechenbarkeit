@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id as \"id?\", vendor, invoice_number, sum, date, payment_type as \"payment_type?\" FROM \"invoice\" WHERE id=$1",
+  "query": "SELECT * FROM \"invoice\"",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id?",
+        "name": "id",
         "type_info": "Int8"
       },
       {
@@ -30,14 +30,12 @@
       },
       {
         "ordinal": 5,
-        "name": "payment_type?",
+        "name": "payment_type",
         "type_info": "Varchar"
       }
     ],
     "parameters": {
-      "Left": [
-        "Int8"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -45,8 +43,8 @@
       false,
       false,
       false,
-      false
+      true
     ]
   },
-  "hash": "5fb238b22bc117febda0a18056b908e066a096f3b54c70b12f0e3960ab48120b"
+  "hash": "a63d65c9c53a0e3bd10999b79bc0c21b2042f1019ccfbc5125ada358643c9815"
 }
