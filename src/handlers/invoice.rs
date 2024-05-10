@@ -35,6 +35,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
     DBInvoiceItem::bulk_insert(&mut conn, (parsed_invoice.items).into_iter().map(|i| DBInvoiceItem {
         id: None,
         invoice_id,
+        position: i.pos as i64,
         typ: match i.typ {
             InvoiceItemType::Credit => "Credit".to_string(),
             InvoiceItemType::Expense => "Expense".to_string()

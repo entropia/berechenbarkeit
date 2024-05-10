@@ -111,7 +111,7 @@ impl TryFrom<RawBauhausInvoiceItem> for InvoiceItem {
     fn try_from(value: RawBauhausInvoiceItem) -> Result<Self, BauhausInvoiceError> {
         Ok(InvoiceItem {
             typ: value.typ,
-            pos: Some(value.pos),
+            pos: value.pos,
             article_number: value.artnr.trim().to_string(),
             description: value.bezeichnung.trim().to_string(),
             net_price_single: parse_bauhaus_number(&value.einzelpreis)?,

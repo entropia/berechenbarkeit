@@ -129,6 +129,10 @@ pub(crate) fn invoice(text: &str) -> Result<Invoice, MetroInvoiceError> {
         .collect::<Result<Vec<InvoiceItem>, MetroInvoiceError>>()?;
 
     items.append(&mut items_credit);
+    
+    for (i, el) in items.iter_mut().enumerate() {
+        el.pos = i as u32;
+    }
     Ok(Invoice { vendor: InvoiceVendor::Metro, meta, items })
 }
 
@@ -167,7 +171,7 @@ impl TryFrom<RawMetroInvoiceItem> for InvoiceItem {
     fn try_from(value: RawMetroInvoiceItem) -> Result<Self, MetroInvoiceError> {
         Ok(InvoiceItem {
             typ: value.typ,
-            pos: None,
+            pos: 0,
             article_number: value.artnr.trim().to_string(),
             description: value.bezeichnung.trim().to_string(),
             net_price_single: parse_metro_number(&value.einzelpreis)?,

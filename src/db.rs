@@ -78,6 +78,7 @@ impl From<Invoice> for DBInvoice {
 pub(crate) struct DBInvoiceItem {
     #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
     pub id: Option<i64>,
+    pub position: i64,
     pub invoice_id: i64,
     pub typ: String,
     pub description: String,
@@ -93,10 +94,10 @@ impl DBInvoiceItem {
     pub(crate) async fn bulk_insert(connection: &mut PgConnection, objects: Vec<DBInvoiceItem>) -> Result<()> {
         let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
             "INSERT INTO invoice_item
-        (invoice_id, typ, description, amount, net_price_single, net_price_total, vat, cost_centre_id) ",
+        (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) ",
         );
         qb.push_values(objects.iter(), |mut b, rec| {
-            b.push_bind(rec.invoice_id).push_bind(&rec.typ).push_bind(&rec.description).push_bind(rec.amount).push_bind(rec.net_price_single).push_bind(rec.net_price_total).push_bind(rec.vat).push_bind(rec.cost_centre_id);
+            b.push_bind(rec.position).push_bind(rec.invoice_id).push_bind(&rec.typ).push_bind(&rec.description).push_bind(rec.amount).push_bind(rec.net_price_single).push_bind(rec.vat).push_bind(rec.cost_centre_id);
         });
 
         qb.build().execute(connection).await?;
