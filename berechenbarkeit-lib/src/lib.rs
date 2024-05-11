@@ -14,7 +14,7 @@ struct Cli {
 
 pub fn parse_pdf(pdf: &[u8], vendor: InvoiceVendor) -> anyhow::Result<Invoice> {
     let text = pdf_extract::extract_text_from_mem(pdf)?;
-    return match vendor {
+    match vendor {
         InvoiceVendor::Metro => Ok(vendors::metro::invoice(&text)?),
         InvoiceVendor::Bauhaus => Ok(vendors::bauhaus::invoice(&text)?)
     }
@@ -64,7 +64,7 @@ pub struct InvoiceItem {
 #[derive(Debug, Clone, Serialize)]
 pub struct InvoiceMeta {
     pub invoice_number: String,
-    pub sum: f64,
+    pub sum_gross: f64,
     pub payment_type: Option<String>,
     pub date: PrimitiveDateTime,
 }

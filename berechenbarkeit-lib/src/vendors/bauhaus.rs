@@ -28,7 +28,7 @@ static INVOICE_DATE: Lazy<Regex> = Lazy::new(|| {
 pub(crate) fn invoice(text: &str) -> Result<Invoice, BauhausInvoiceError> {
     let invoice_number = find(&INVOICE_NUMBER, "INVOICE_NUMBER", text)?;
     let _customer_number = find(&CUSTOMER_NUMBER, "CUSTOMER_NUMBER", text)?;
-    let sum = parse_bauhaus_number(&find(&SUM_TYPE, "SUM", text)?)?;
+    let sum_gross = parse_bauhaus_number(&find(&SUM_TYPE, "SUM", text)?)?;
     let date_caps = INVOICE_DATE
         .captures(text)
         .ok_or(BauhausInvoiceError::MissingField("INVOICE_DATE"))?;
@@ -55,7 +55,7 @@ pub(crate) fn invoice(text: &str) -> Result<Invoice, BauhausInvoiceError> {
     );
     let meta = InvoiceMeta {
         invoice_number,
-        sum,
+        sum_gross,
         payment_type: None,
         date
     };

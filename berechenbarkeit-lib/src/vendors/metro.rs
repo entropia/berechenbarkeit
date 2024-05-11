@@ -33,7 +33,7 @@ static EXTRA_SPACES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s+").unwrap());
 pub(crate) fn invoice(text: &str) -> Result<Invoice, MetroInvoiceError> {
     let invoice_number = find(&INVOICE_NUMBER, "INVOICE_NUMBER", text)?;
     let customer_number = find(&CUSTOMER_NUMBER, "CUSTOMER_NUMBER", text)?;
-    let sum = parse_metro_number(&find(&SUM_AND_PAYMENT_TYPE, "SUM", text)?)?;
+    let sum_gross = parse_metro_number(&find(&SUM_AND_PAYMENT_TYPE, "SUM", text)?)?;
     let payment_type = find(&SUM_AND_PAYMENT_TYPE, "PAYMENT_TYPE", text)?;
     let date_caps = INVOICE_DATE
         .captures(text)
@@ -72,7 +72,7 @@ pub(crate) fn invoice(text: &str) -> Result<Invoice, MetroInvoiceError> {
     let payment_type = EXTRA_SPACES.replace_all(&payment_type, " ").to_string();
     let meta = InvoiceMeta {
         invoice_number,
-        sum,
+        sum_gross,
         payment_type: Some(payment_type),
         date,
     };

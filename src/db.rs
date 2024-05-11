@@ -35,7 +35,7 @@ pub(crate) struct DBInvoice {
     pub id: Option<i64>,
     pub vendor: String,
     pub invoice_number: String,
-    pub sum: f64,
+    pub sum_gross: f64,
     pub date: PrimitiveDateTime,
     pub payment_type: Option<String>,
 }
@@ -51,10 +51,10 @@ impl DBInvoice {
 
     pub(crate) async fn insert(object: DBInvoice, connection: &mut PgConnection) -> Result<i64> {
         Ok(sqlx::query!(
-            r#"INSERT INTO "invoice" (vendor, invoice_number, sum, date, payment_type) VALUES ($1, $2, $3, $4, $5) RETURNING id"#,
+            r#"INSERT INTO "invoice" (vendor, invoice_number, sum_gross, date, payment_type) VALUES ($1, $2, $3, $4, $5) RETURNING id"#,
             object.vendor,
             object.invoice_number,
-            object.sum,
+            object.sum_gross,
             object.date,
             object.payment_type,
         ).fetch_one(connection).await?.id)
@@ -67,7 +67,7 @@ impl From<Invoice> for DBInvoice {
             id: None,
             vendor: invoice.vendor.to_string(),
             invoice_number: invoice.meta.invoice_number.clone(),
-            sum: invoice.meta.sum,
+            sum_gross: invoice.meta.sum_gross,
             date: invoice.meta.date,
             payment_type: invoice.meta.payment_type.clone(),
         }
@@ -151,7 +151,7 @@ pub(crate) struct DBCostCentre {
 pub(crate) struct CostCentreWithSum {
     pub cost_centre_name: String,
     pub vat: f64,
-    pub sum: f64,
+    pub sum_net: f64,
 }
 
 impl DBCostCentre {
@@ -172,10 +172,10 @@ impl DBCostCentre {
     }
 
     pub(crate) async fn get_summary(connection: &mut PgConnection) -> Result<Vec<CostCentreWithSum>> {
-        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
+        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum_net FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
             cost_centre_name: x.cost_centre_name,
             vat: x.vat,
-            sum: f64::round(x.sum.unwrap_or(0f64) * 100f64) / 100f64,
+            sum_net: f64::round(x.sum_net.unwrap_or(0f64) * 100f64) / 100f64,
         }).collect())
     }
 }

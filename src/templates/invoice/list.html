@@ -19,7 +19,7 @@
         <th scope="row">{{i.date}}</th>
         <td>{{i.vendor}}</td>
         <td>{{i.invoice_number}}</td>
-        <td>{{i.sum}}&euro;</td>
+        <td>{{i.sum_gross}}&euro;</td>
         <td><a href="/invoice/{{i.id.unwrap()}}/edit" type="button" class="btn btn-secondary">Edit</a></td>
     </tr>
     {% endfor %}

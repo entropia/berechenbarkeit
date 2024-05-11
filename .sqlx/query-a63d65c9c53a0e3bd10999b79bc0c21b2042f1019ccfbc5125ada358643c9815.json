@@ -20,7 +20,7 @@
       },
       {
         "ordinal": 3,
-        "name": "sum",
+        "name": "sum_gross",
         "type_info": "Float8"
       },
       {
