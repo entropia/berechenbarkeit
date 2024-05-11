@@ -93,6 +93,7 @@ pub(crate) struct DBInvoiceItem {
     pub amount: f64,
     pub net_price_single: f64,
     pub vat: f64,
+    pub vat_exempt: bool,
     pub cost_centre_id: Option<i64>,
     pub cost_centre: Option<String>,
 }
@@ -100,11 +101,19 @@ pub(crate) struct DBInvoiceItem {
 impl DBInvoiceItem {
     pub(crate) async fn bulk_insert(connection: &mut PgConnection, objects: Vec<DBInvoiceItem>) -> Result<()> {
         let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
-            "INSERT INTO invoice_item
-        (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) ",
+            "INSERT INTO invoice_item (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id)",
         );
         qb.push_values(objects.iter(), |mut b, rec| {
-            b.push_bind(rec.position).push_bind(rec.invoice_id).push_bind(&rec.typ).push_bind(&rec.description).push_bind(rec.amount).push_bind(rec.net_price_single).push_bind(rec.vat).push_bind(rec.cost_centre_id);
+            b
+                .push_bind(rec.position)
+                .push_bind(rec.invoice_id)
+                .push_bind(&rec.typ)
+                .push_bind(&rec.description)
+                .push_bind(rec.amount)
+                .push_bind(rec.net_price_single)
+                .push_bind(rec.vat)
+                .push_bind(rec.vat_exempt)
+                .push_bind(rec.cost_centre_id);
         });
 
         qb.build().execute(connection).await?;
@@ -128,14 +137,20 @@ impl DBInvoiceItem {
         sqlx::query!(r#"UPDATE "invoice_item" SET amount=$1 WHERE id=$2"#, amount, id).execute(connection).await?;
         Ok(())
     }
+
     pub(crate) async fn update_cost_centre(id: i64, cost_centre_id: Option<i64>, connection: &mut PgConnection) -> Result<()> {
         sqlx::query!(r#"UPDATE "invoice_item" SET cost_centre_id=$1 WHERE id=$2"#, cost_centre_id, id).execute(connection).await?;
         Ok(())
     }
 
+    pub(crate) async fn update_vat_exemption(id: i64, vat_exempt: bool, connection: &mut PgConnection) -> Result<()> {
+        sqlx::query!(r#"UPDATE "invoice_item" SET vat_exempt=$1 WHERE id=$2"#, vat_exempt, id).execute(connection).await?;
+        Ok(())
+    }
+
     pub(crate) async fn insert(object: DBInvoiceItem, connection: &mut PgConnection) -> Result<i64> {
         Ok(sqlx::query!(
-            r#"INSERT INTO "invoice_item" (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"#,
+            r#"INSERT INTO "invoice_item" (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"#,
             object.position,
             object.invoice_id,
             object.typ,
@@ -143,6 +158,7 @@ impl DBInvoiceItem {
             object.amount,
             object.net_price_single,
             object.vat,
+            object.vat_exempt,
             object.cost_centre_id,
         ).fetch_one(connection).await?.id)
     }
@@ -160,6 +176,7 @@ pub(crate) struct CostCentreWithSum {
     pub cost_centre_name: String,
     pub vat: f64,
     pub sum_net: f64,
+    pub sum_vat_exempted: f64,
 }
 
 impl DBCostCentre {
@@ -180,10 +197,11 @@ impl DBCostCentre {
     }
 
     pub(crate) async fn get_summary(connection: &mut PgConnection) -> Result<Vec<CostCentreWithSum>> {
-        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum_net FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
+        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum_net, SUM(CASE WHEN invoice_item.vat_exempt THEN (invoice_item.amount * "net_price_single") else 0 END) as sum_vat_exempted FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat;"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
             cost_centre_name: x.cost_centre_name,
             vat: x.vat,
             sum_net: f64::round(x.sum_net.unwrap_or(0f64) * 100f64) / 100f64,
+            sum_vat_exempted: f64::round(x.sum_vat_exempted.unwrap_or(0f64) * 100f64) / 100f64
         }).collect())
     }
 }

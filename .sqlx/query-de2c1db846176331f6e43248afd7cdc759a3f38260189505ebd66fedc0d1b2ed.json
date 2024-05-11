@@ -50,6 +50,11 @@
       },
       {
         "ordinal": 9,
+        "name": "vat_exempt",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
         "name": "cost_centre?",
         "type_info": "Varchar"
       }
@@ -68,6 +73,7 @@
       false,
       false,
       true,
+      false,
       false,
       false
     ]

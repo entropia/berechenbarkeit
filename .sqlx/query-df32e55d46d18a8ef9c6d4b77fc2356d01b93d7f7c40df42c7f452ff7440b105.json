@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE \"invoice_item\" SET vat_exempt=$1 WHERE id=$2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "df32e55d46d18a8ef9c6d4b77fc2356d01b93d7f7c40df42c7f452ff7440b105"
+}

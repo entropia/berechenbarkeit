@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
 use std::str::FromStr;
@@ -46,6 +47,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
         amount: i.amount,
         net_price_single: i.net_price_single,
         vat: i.vat,
+        vat_exempt: false,
         cost_centre_id: None,
         cost_centre: None,
     }).collect()).await?;
@@ -119,6 +121,7 @@ pub(crate) async fn invoice_item_split(DatabaseConnection(mut conn): DatabaseCon
         amount: 0f64,
         net_price_single: invoice_item.net_price_single,
         vat: invoice_item.vat,
+        vat_exempt: false,
         cost_centre_id: None,
         cost_centre: None
     }, &mut conn).await?;
@@ -131,18 +134,33 @@ pub(crate) async fn invoice_item_split(DatabaseConnection(mut conn): DatabaseCon
 pub(crate) async fn invoice_edit_submit(DatabaseConnection(mut conn): DatabaseConnection, Path(invoice_id): Path<i64>, RawForm(form): RawForm) -> Result<Redirect, AppError> {
     let form_data = serde_html_form::from_bytes::<Vec<(String, String)>>(&form)?;
 
+    let mut vat_exempt_items_changed = HashSet::new();
+
     for form_field in form_data.into_iter() {
         // TODO: Use bulk UPDATE
-        let (id, data_type) = form_field.0.split_once('-').unwrap();
-        let id = id.parse()?;
+        let (invoiceitem_id, data_type) = form_field.0.split_once('-').unwrap();
+        let invoiceitem_id = invoiceitem_id.parse()?;
         if data_type == "amount" {
-            DBInvoiceItem::update_amount(id, f64::from_str(&form_field. 1)?, &mut conn).await?;
+            DBInvoiceItem::update_amount(invoiceitem_id, f64::from_str(&form_field. 1)?, &mut conn).await?;
         } else if data_type == "costcentre" {
             let mut cost_centre_id = None;
             if !form_field.1.is_empty() {
                 cost_centre_id = Some(form_field.1.parse()?);
             }
-            DBInvoiceItem::update_cost_centre(id, cost_centre_id, &mut conn).await?;
+            DBInvoiceItem::update_cost_centre(invoiceitem_id, cost_centre_id, &mut conn).await?;
+        } else if data_type == "vatexempt" {
+            if form_field.1 != "on" {
+                continue
+            }
+            vat_exempt_items_changed.insert(invoiceitem_id);
+            DBInvoiceItem::update_vat_exemption(invoiceitem_id, true, &mut conn).await?;
+        }
+    };
+
+    // As html <input type="checkbox"> only send the value if they're checked, we need to set all other values to null.
+    for ii in DBInvoiceItem::get_by_invoice_id(invoice_id, &mut conn).await? {
+        if !vat_exempt_items_changed.contains(&ii.id.unwrap()) {
+            DBInvoiceItem::update_vat_exemption(ii.id.unwrap(), false, &mut conn).await?
         }
     }
 

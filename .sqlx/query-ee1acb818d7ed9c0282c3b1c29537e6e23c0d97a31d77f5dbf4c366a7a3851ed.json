@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO \"invoice_item\" (position, invoice_id, typ, description, amount, net_price_single, vat, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+  "query": "INSERT INTO \"invoice_item\" (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
   "describe": {
     "columns": [
       {
@@ -18,6 +18,7 @@
         "Float8",
         "Float8",
         "Float8",
+        "Bool",
         "Int8"
       ]
     },
@@ -25,5 +26,5 @@
       false
     ]
   },
-  "hash": "18ca3f3b7e101b5029517016cdc4f073cc2f8574e125ad16e48b075e08620b63"
+  "hash": "ee1acb818d7ed9c0282c3b1c29537e6e23c0d97a31d77f5dbf4c366a7a3851ed"
 }
