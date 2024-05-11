@@ -14,16 +14,18 @@ struct Cli {
 
 pub fn parse_pdf(pdf: &[u8], vendor: InvoiceVendor) -> anyhow::Result<Invoice> {
     let text = pdf_extract::extract_text_from_mem(pdf)?;
-    return match vendor {
-        InvoiceVendor::Metro => Ok(vendors::metro::invoice(&text)?),
-        InvoiceVendor::Bauhaus => Ok(vendors::bauhaus::invoice(&text)?)
-    }
+    let vendor_config = match vendor {
+        InvoiceVendor::Metro => vendors::metro::METRO,
+        InvoiceVendor::Bauhaus => vendors::bauhaus::BAUHAUS,
+    };
+    return Ok(vendors::vendor::extract_invoice_data(&text, vendor_config)?);
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub enum InvoiceVendor {
     Metro,
-    Bauhaus
+    Bauhaus,
+    Unknown
 }
 
 impl ToString for InvoiceVendor {
