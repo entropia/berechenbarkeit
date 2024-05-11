@@ -59,6 +59,14 @@ impl DBInvoice {
             object.payment_type,
         ).fetch_one(connection).await?.id)
     }
+
+    pub(crate) async fn delete(id: i64, connection: &mut PgConnection) -> Result<()> {
+        let result = sqlx::query!(
+            r#"DELETE FROM invoice WHERE id=$1"#,
+            id
+        ).execute(connection).await?;
+        Ok(())
+    }
 }
 
 impl From<Invoice> for DBInvoice {

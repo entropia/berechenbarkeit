@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Rechnung löschen</h2>
+<h3>{{ invoice.vendor }} – {{ invoice.invoice_number }}</h3>
+
+<div class="alert alert-warning" role="alert">
+    Achtung! Du bist dabei die Rechnung {{ invoice.invoice_number }} zu löschen. Bist du dir sicher?
+</div>
+
+<form method="post">
+    <button class="btn btn-warning">Löschen</button>
+</form>
+
+{% endblock content %}

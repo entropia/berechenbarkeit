@@ -81,6 +81,28 @@ pub(crate) async fn invoice_edit(DatabaseConnection(mut conn): DatabaseConnectio
     }))
 }
 
+
+#[derive(Template)]
+#[template(path = "invoice/delete_confirm.html")]
+struct InvoiceDeleteConfirmTemplate {
+    invoice: DBInvoice,
+}
+pub(crate) async fn invoice_delete_confirm(DatabaseConnection(mut conn): DatabaseConnection, Path(invoice_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
+    let invoice = DBInvoice::get_by_id(invoice_id, &mut conn).await?;
+
+    Ok(HtmlTemplate(InvoiceDeleteConfirmTemplate {
+        invoice,
+    }))
+}
+
+pub(crate) async fn invoice_delete(DatabaseConnection(mut conn): DatabaseConnection, Path(invoice_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
+    DBInvoice::delete(invoice_id, &mut conn).await?;
+
+    Ok(Redirect::to("/invoices"))
+}
+
+
+
 #[derive(Serialize)]
 struct InvoiceItemSplitResponse {
     new_id: i64,

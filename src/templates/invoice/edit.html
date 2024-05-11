@@ -35,7 +35,10 @@
     </div>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary">Speichern</button>
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="/invoice/{{invoice.id.unwrap()}}/delete" class="btn btn-secondary float-end">Löschen</a>
+    </div>
 </form>
 {% endblock content %}
 
