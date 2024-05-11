@@ -8,7 +8,12 @@ use axum::extract::{Multipart, Path, RawForm};
 use axum::Json;
 use axum::response::{IntoResponse, Redirect};
 use serde::Serialize;
-use berechenbarkeit_lib::{InvoiceVendor, InvoiceItemType, parse_pdf};
+use berechenbarkeit_lib::{
+    InvoiceVendor, InvoiceItemType,
+    Vendor,
+    InvoiceParser,
+    get_parser_for_vendor,
+};
 use crate::{AppError, HtmlTemplate};
 use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
 
@@ -24,15 +29,18 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
             vendor = match std::str::from_utf8(&data)? {
                 "metro" => Some(InvoiceVendor::Metro),
                 "bauhaus" => Some(InvoiceVendor::Bauhaus),
-                &_ => None
-            }
+                &_ => None,
+            };
         }
     }
+    let parser: Option<InvoiceParser> = get_parser_for_vendor(vendor.clone());
 
     // This error should never happen, as we have the HTTP form under our control
     let file = file.unwrap();
-    let parsed_invoice = parse_pdf(&(file), vendor.unwrap())?;
 
+    let parsed_invoice = match parser.unwrap() {
+        InvoiceParser::Regex(p) => p.extract_invoice_data(&file, vendor.unwrap())?
+    };
     let invoice_id = DBInvoice::insert(parsed_invoice.clone().into(), &mut conn).await?;
 
     DBInvoiceItem::bulk_insert(&mut conn, (parsed_invoice.items).into_iter().map(|i| DBInvoiceItem {

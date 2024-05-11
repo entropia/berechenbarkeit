@@ -1,2 +1,1 @@
-pub(crate) mod metro;
-pub(crate) mod bauhaus;
+pub mod regex;
