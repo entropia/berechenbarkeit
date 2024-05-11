@@ -68,3 +68,19 @@ pub struct InvoiceMeta {
     pub payment_type: Option<String>,
     pub date: PrimitiveDateTime,
 }
+
+
+pub(crate) fn calculate_net_for_gross(gross_price: f64, vat: f64) -> f64 {
+    let net_exact = gross_price * (1.0 - (vat / (1.0 + vat)));
+    (net_exact * 1000.0).round() / 1000.0
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn caculate_net_for_gross() {
+        assert_eq!(100.0, super::calculate_net_for_gross(119.0, 0.19));
+        assert_eq!(23.546, super::calculate_net_for_gross(28.02, 0.19));
+    }
+}

@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use thiserror::Error;
 use time::{error::ComponentRange, Date, PrimitiveDateTime, Time};
-use crate::{Invoice, InvoiceItem, InvoiceItemType, InvoiceMeta, InvoiceVendor};
+use crate::{calculate_net_for_gross, Invoice, InvoiceItem, InvoiceItemType, InvoiceMeta, InvoiceVendor};
 
 static INVOICE_ITEM: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<BEZEICHNUNG>.{1,100})\s+(?P<MENGE>\d{1,6}) (ST|KAR)\s+(?P<EINZELPREIS>.{1,7})\s+(?P<GESAMTPREIS>.{1,7})\s+(?P<MWST>\w)$").unwrap()
@@ -109,21 +109,22 @@ pub(crate) struct RawBauhausInvoiceItem {
 impl TryFrom<RawBauhausInvoiceItem> for InvoiceItem {
     type Error = BauhausInvoiceError;
     fn try_from(value: RawBauhausInvoiceItem) -> Result<Self, BauhausInvoiceError> {
+        let vat = match value.m.as_str() {
+            "C" => 0.19f64,
+            unknown_vat_class => {
+                return Err(BauhausInvoiceError::UnknownVatClass(
+                    unknown_vat_class.to_string(),
+                ))
+            }
+        };
         Ok(InvoiceItem {
             typ: value.typ,
             pos: value.pos,
             article_number: value.artnr.trim().to_string(),
             description: value.bezeichnung.trim().to_string(),
-            net_price_single: parse_bauhaus_number(&value.einzelpreis)?,
-            net_total_price: parse_bauhaus_number(&value.gesamtpreis)?,
-            vat: match value.m.as_str() {
-                "C" => 0.19f64,
-                unknown_vat_class => {
-                    return Err(BauhausInvoiceError::UnknownVatClass(
-                        unknown_vat_class.to_string(),
-                    ))
-                }
-            },
+            net_price_single: calculate_net_for_gross(parse_bauhaus_number(&value.einzelpreis)?, vat),
+            net_total_price: calculate_net_for_gross(parse_bauhaus_number(&value.gesamtpreis)?, vat),
+            vat,
             amount: parse_bauhaus_number(&value.menge)?,
         })
     }
@@ -143,7 +144,7 @@ pub(crate) enum BauhausInvoiceError {
     MissingField(&'static str),
 }
 
-pub(crate) fn parse_bauhaus_number(text: &str) -> Result<f64, BauhausInvoiceError> {
+fn parse_bauhaus_number(text: &str) -> Result<f64, BauhausInvoiceError> {
     let text = text.replace(".", "").replace(" ", "").replace(" ", "");
     let negative = text.contains("-");
     let text = text.replace("-", "").replace(",", ".");

@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT SUM(invoice_item.amount * invoice_item.net_price_single * (1 + invoice_item.vat)) FROM invoice_item",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sum",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "0f365701ebab143493e54264e43aa4637e845f169208d5d1e9a1782bad01e357"
+}
