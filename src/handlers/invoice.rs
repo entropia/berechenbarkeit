@@ -68,18 +68,21 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
 struct InvoiceEditTemplate {
     invoice: DBInvoice,
     invoice_items: Vec<DBInvoiceItem>,
-    cost_centres: Vec<DBCostCentre>
+    cost_centres: Vec<DBCostCentre>,
+    diff_invoice_item_sum: f64
 }
 
 pub(crate) async fn invoice_edit(DatabaseConnection(mut conn): DatabaseConnection, Path(invoice_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
     let invoice = DBInvoice::get_by_id(invoice_id, &mut conn).await?;
     let invoice_items = DBInvoiceItem::get_by_invoice_id(invoice_id, &mut conn).await?;
     let cost_centres = DBCostCentre::get_all(&mut conn).await?;
+    let diff_invoice_item_sum = f64::round((invoice.sum_gross - DBInvoiceItem::calculate_sum_gross_by_invoice_id(invoice_id, &mut conn).await?) * 1000f64) / 1000f64;
 
     Ok(HtmlTemplate(InvoiceEditTemplate {
         invoice,
         invoice_items,
-        cost_centres
+        cost_centres,
+        diff_invoice_item_sum
     }))
 }
 

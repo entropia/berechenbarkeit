@@ -4,6 +4,12 @@
 <h2>Rechnung</h2>
 <h3>{{ invoice.vendor }} – {{ invoice.invoice_number }}</h3>
 
+{% if diff_invoice_item_sum.abs() >= 0.01 %}
+<div class="alert alert-warning" role="alert">
+    Achtung! Der Rechnungsbetrag unterscheidet sich von der Summe der erkannten Position um {{ diff_invoice_item_sum }}&euro; Brutto. Bitte überprüfe die Rechnung.
+</div>
+{% endif %}
+
 <form id="invoice-edit-form" method="post">
     <div class="row pb-2 pt-2 border-top">
         <div class="col-xl-5"><b>Produkt</b></div>
@@ -11,6 +17,7 @@
         <div class="col-xl-1"><b>Einzelpreis (Netto)</b></div>
         <div class="col-xl-1"><b>MwSt</b></div>
         <div class="col-xl-1"><b>MwSt-befreit?</b></div>
+        <div class="col-xl-2"><b>Kostenstelle</b></div>
     </div>
     {% for ii in invoice_items %}
     <div class="row pb-2 pt-2 border-top">

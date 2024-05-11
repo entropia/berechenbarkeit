@@ -8,7 +8,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPool;
 use time::PrimitiveDateTime;
 
-use berechenbarkeit_lib::{Invoice, InvoiceItem};
+use berechenbarkeit_lib::Invoice;
 
 type Result<T, E = sqlx::Error> = std::result::Result<T, E>;
 
@@ -128,8 +128,8 @@ impl DBInvoiceItem {
         sqlx::query_as!(DBInvoiceItem, r#"SELECT invoice_item.*, cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id WHERE invoice_item.invoice_id = $1 ORDER BY invoice_item.position,invoice_item.id"#, invoice_id).fetch_all(connection).await
     }
 
-    pub(crate) async fn calculate_sum_by_invoice_id(invoice_id: i64, connection: &mut PgConnection) -> Result<f64> {
-        Ok(sqlx::query!(r#"SELECT SUM(invoice_item.amount * invoice_item.net_price_single) FROM invoice_item"#).fetch_one(connection).await?.sum.unwrap_or(0f64))
+    pub(crate) async fn calculate_sum_gross_by_invoice_id(invoice_id: i64, connection: &mut PgConnection) -> Result<f64> {
+        Ok(sqlx::query!(r#"SELECT SUM(invoice_item.amount * invoice_item.net_price_single * (1 + invoice_item.vat)) FROM invoice_item WHERE invoice_id=$1"#, invoice_id).fetch_one(connection).await?.sum.unwrap_or(0f64))
 
     }
 
