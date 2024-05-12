@@ -90,7 +90,8 @@ struct AppError(anyhow::Error);
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        tracing::debug!("stacktrace: {}", self.0.backtrace());
+        tracing::error!("500 error: {}", self.0);
+        tracing::debug!("500 error stacktrace: {}", self.0.backtrace());
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("Something went wrong: {}", self.0),
