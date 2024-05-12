@@ -71,7 +71,6 @@ async fn main() {
                         "http_request",
                         method = ?request.method(),
                         matched_path,
-                        some_other_field = tracing::field::Empty,
                     )
                 })
         )
@@ -91,6 +90,7 @@ struct AppError(anyhow::Error);
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
+        tracing::debug!("stacktrace: {}", self.0.backtrace());
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("Something went wrong: {}", self.0),
