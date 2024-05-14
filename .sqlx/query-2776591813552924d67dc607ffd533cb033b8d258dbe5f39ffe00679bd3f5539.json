@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT invoice.vendor as invoice_vendor, invoice.invoice_number, invoice.date AS invoice_date, invoice_item.*, cost_centre.name as \"cost_centre?\" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id JOIN invoice ON invoice_item.invoice_id = invoice.id ORDER BY invoice.date,invoice.id,invoice_item.position,invoice_item.id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "invoice_vendor",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "invoice_number",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "invoice_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 3,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "invoice_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "typ",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 8,
+        "name": "net_price_single",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 9,
+        "name": "vat",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 10,
+        "name": "cost_centre_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 11,
+        "name": "position",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 12,
+        "name": "vat_exempt",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "cost_centre?",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2776591813552924d67dc607ffd533cb033b8d258dbe5f39ffe00679bd3f5539"
+}

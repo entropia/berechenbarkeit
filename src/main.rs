@@ -55,6 +55,8 @@ async fn main() {
         .route("/cost_centres", get(handlers::cost_centre::cost_centre_list).post(handlers::cost_centre::cost_centre_add))
         .route("/cost_centre/:cost_centre_id/delete", get(handlers::cost_centre::cost_centre_delete))
         .route("/summary", get(handlers::summary::summary_overview))
+        .route("/summary/aggregated_csv", get(handlers::summary::summary_csv_aggregated))
+        .route("/summary/raw_csv", get(handlers::summary::summary_csv_raw))
         .route("/", get(handlers::home::home))
         .with_state(db_pool)
         .layer(

@@ -98,6 +98,24 @@ pub(crate) struct DBInvoiceItem {
     pub cost_centre: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct InvoiceItemExtended {
+    pub invoice_vendor: String,
+    pub invoice_number: String,
+    pub invoice_date: PrimitiveDateTime,
+    pub id: i64,
+    pub position: i64,
+    pub invoice_id: i64,
+    pub typ: String,
+    pub description: String,
+    pub amount: f64,
+    pub net_price_single: f64,
+    pub vat: f64,
+    pub vat_exempt: bool,
+    pub cost_centre_id: Option<i64>,
+    pub cost_centre: Option<String>,
+}
+
 impl DBInvoiceItem {
     pub(crate) async fn bulk_insert(connection: &mut PgConnection, objects: Vec<DBInvoiceItem>) -> Result<()> {
         let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
@@ -118,6 +136,10 @@ impl DBInvoiceItem {
 
         qb.build().execute(connection).await?;
         Ok(())
+    }
+
+    pub(crate) async fn get_all(connection: &mut PgConnection) -> Result<Vec<InvoiceItemExtended>> {
+        sqlx::query_as!(InvoiceItemExtended, r#"SELECT invoice.vendor as invoice_vendor, invoice.invoice_number, invoice.date AS invoice_date, invoice_item.*, cost_centre.name as "cost_centre?" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id JOIN invoice ON invoice_item.invoice_id = invoice.id ORDER BY invoice.date,invoice.id,invoice_item.position,invoice_item.id"#).fetch_all(connection).await
     }
 
     pub(crate) async fn get_by_id(invoiceitem_id: i64, connection: &mut PgConnection) -> Result<DBInvoiceItem> {
@@ -200,8 +222,8 @@ impl DBCostCentre {
         Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum_net, SUM(CASE WHEN invoice_item.vat_exempt THEN (invoice_item.amount * "net_price_single") else 0 END) as sum_vat_exempted FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat;"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
             cost_centre_name: x.cost_centre_name,
             vat: x.vat,
-            sum_net: f64::round(x.sum_net.unwrap_or(0f64) * 100f64) / 100f64,
-            sum_vat_exempted: f64::round(x.sum_vat_exempted.unwrap_or(0f64) * 100f64) / 100f64
+            sum_net: x.sum_net.unwrap_or(0f64),
+            sum_vat_exempted: x.sum_vat_exempted.unwrap_or(0f64)
         }).collect())
     }
 }
