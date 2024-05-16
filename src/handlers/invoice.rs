@@ -29,6 +29,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
             vendor = match std::str::from_utf8(&data)? {
                 "metro" => Some(InvoiceVendor::Metro),
                 "bauhaus" => Some(InvoiceVendor::Bauhaus),
+                "ikea" => Some(InvoiceVendor::Ikea),
                 &_ => None,
             };
         }

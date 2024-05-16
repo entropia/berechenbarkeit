@@ -202,3 +202,12 @@ pub static BAUHAUS: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     None,
     vec![("C", 0.19f64)],
 ));
+
+pub static IKEA: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
+    r"Rechnungsnummer: (?P<INVOICE_NUMBER>\w+)",
+    r"Rechnungsdatum:\s+(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{2,4})",
+    r"Rechnungssumme:\s+€\s+(?P<SUM>[0-9,\.]+)",
+    r"^(?P<ARTNR>\d{2,3}\.\d{2,3}\.\d{2,3})\s+(?P<DESC>.+)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,5},\d{0,2})\s+(?P<VAT>\d{1,2}) %\s+€ (?P<GROSS_PRICE_TOTAL>[0-9,\.]+)$",
+    None,
+    vec![("19", 0.19f64), ("7", 0.07f64)],
+));
