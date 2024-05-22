@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM \"invoice\"",
+  "query": "SELECT * FROM \"invoice\" ORDER BY date DESC",
   "describe": {
     "columns": [
       {
@@ -46,5 +46,5 @@
       true
     ]
   },
-  "hash": "a63d65c9c53a0e3bd10999b79bc0c21b2042f1019ccfbc5125ada358643c9815"
+  "hash": "d9a957656883cc51b91062d8bcbfa746846a18382958fe2f1ccdf0e998eb12eb"
 }

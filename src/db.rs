@@ -42,7 +42,7 @@ pub(crate) struct DBInvoice {
 
 impl DBInvoice {
     pub(crate) async fn get_all(connection: &mut PgConnection) -> Result<Vec<DBInvoice>> {
-        sqlx::query_as!(DBInvoice, r#"SELECT * FROM "invoice""#).fetch_all(connection).await
+        sqlx::query_as!(DBInvoice, r#"SELECT * FROM "invoice" ORDER BY date DESC"#).fetch_all(connection).await
     }
 
     pub(crate) async fn get_by_id(id: i64, connection: &mut PgConnection) -> Result<DBInvoice> {
