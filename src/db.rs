@@ -219,11 +219,19 @@ impl DBCostCentre {
     }
 
     pub(crate) async fn get_summary(connection: &mut PgConnection) -> Result<Vec<CostCentreWithSum>> {
-        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name, invoice_item.vat AS vat, SUM(invoice_item.amount * invoice_item.net_price_single) AS sum_net, SUM(CASE WHEN invoice_item.vat_exempt THEN (invoice_item.amount * "net_price_single") else 0 END) as sum_vat_exempted FROM cost_centre JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id GROUP BY cost_centre_name, vat ORDER BY cost_centre_name, vat;"#).fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
-            cost_centre_name: x.cost_centre_name,
-            vat: x.vat,
-            sum_net: x.sum_net.unwrap_or(0f64),
-            sum_vat_exempted: x.sum_vat_exempted.unwrap_or(0f64)
-        }).collect())
+        Ok(sqlx::query!(r#"SELECT cost_centre.name AS cost_centre_name,
+                invoice_item.vat AS vat,
+                ROUND(SUM(invoice_item.amount::numeric * invoice_item.net_price_single::numeric), 3)::double precision AS sum_net,
+                ROUND(SUM(CASE WHEN invoice_item.vat_exempt THEN (invoice_item.amount::numeric * invoice_item.net_price_single::numeric) else 0 END), 3)::double precision as sum_vat_exempted
+                FROM cost_centre
+                JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id
+                GROUP BY cost_centre_name, vat
+                ORDER BY cost_centre_name, vat;"#)
+            .fetch_all(connection).await?.into_iter().map(|x| CostCentreWithSum {
+                cost_centre_name: x.cost_centre_name,
+                vat: x.vat,
+                sum_net: x.sum_net.unwrap_or(0f64),
+                sum_vat_exempted: x.sum_vat_exempted.unwrap_or(0f64)
+            }).collect())
     }
 }

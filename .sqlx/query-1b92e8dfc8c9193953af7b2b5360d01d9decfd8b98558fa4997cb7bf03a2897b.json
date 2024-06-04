@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT cost_centre.name AS cost_centre_name,\n                invoice_item.vat AS vat,\n                ROUND(SUM(invoice_item.amount::numeric * invoice_item.net_price_single::numeric), 3)::double precision AS sum_net,\n                ROUND(SUM(CASE WHEN invoice_item.vat_exempt THEN (invoice_item.amount::numeric * invoice_item.net_price_single::numeric) else 0 END), 3)::double precision as sum_vat_exempted\n                FROM cost_centre\n                JOIN invoice_item ON cost_centre.id=invoice_item.cost_centre_id\n                GROUP BY cost_centre_name, vat\n                ORDER BY cost_centre_name, vat;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "cost_centre_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "vat",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 2,
+        "name": "sum_net",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "sum_vat_exempted",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "1b92e8dfc8c9193953af7b2b5360d01d9decfd8b98558fa4997cb7bf03a2897b"
+}
