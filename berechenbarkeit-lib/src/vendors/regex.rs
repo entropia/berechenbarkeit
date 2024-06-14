@@ -188,7 +188,7 @@ impl Vendor for RegexVendor {
 pub static METRO: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     r"RECHNUNGS?-? ?NR\.?\:?\s+(?P<INVOICE_NUMBER>[\.\d\/]+)",
     r"RECHNUNGSDATUM:\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4}) (?P<hour>\d\d):(?P<min>\d\d)",
-     r"SUMME EUR\s+(?P<SUM>[\d\.,\-]+)[\s\-]+(?P<PAYMENT_TYPE>[a-zA-Z0-9:\-\., ]+) +[\d\.,\-]+",
+     r"SUMME EUR\s+(?P<SUM>[\d\.,\-]+)([\s\-]+(?P<PAYMENT_TYPE>[a-zA-Z0-9:\-\., ]+) +[\d\.,\-]+)?",
     r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<INHALTKOLLI>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$",
     Some(r"^ {26}(?P<DESC>.{50}) *(?P<NET_PRICE_SINGLE>.{11}) (?P<VAT>.)?[ 0-9]{12}$"),
     vec![("A", 0.19f64), ("B", 0.07f64)],
