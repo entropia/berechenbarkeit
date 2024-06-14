@@ -25,7 +25,7 @@
             <span>{{ii.description}}</span>
         </div>
         <div class="col-xl-1">
-            <input class="form-control" type="text" inputmode="numeric" pattern="[\d.]*" value="{{ii.amount}}" name="{{ ii.id.unwrap() }}-amount">
+            <input class="form-control" type="text" inputmode="numeric" pattern="(-)?[\d.]*" value="{{ii.amount}}" name="{{ ii.id.unwrap() }}-amount">
         </div>
         <div class="col-xl-1"><span>{{ii.net_price_single}}&euro;</span></div>
         <div class="col-xl-1"><span>{{ii.vat}}%</span></div>
