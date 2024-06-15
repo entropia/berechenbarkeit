@@ -130,6 +130,10 @@ impl RegexVendor {
         };
         *pos_counter = *pos_counter + 1u32;
         let vat: f64 = self.get_vat_rate_from_class(groups.name("VAT").unwrap().as_str().trim())?;
+        let packaging_unit_amount: f64 = match groups.name("PU_AMOUNT") {
+            Some(pu_amount) => parse_as_float(pu_amount.as_str().trim()),
+            None => 1f64,
+        };
         let amount: f64 = parse_as_float(groups.name("AMOUNT").unwrap().as_str().trim());
         let net_price_single: f64 =  match groups.name("NET_PRICE_SINGLE") {
             Some(net_price_single) => parse_as_float(net_price_single.as_str().trim()),
@@ -141,13 +145,13 @@ impl RegexVendor {
         };
 
         Ok(InvoiceItem {
-            typ: InvoiceItemType::Expense,
+            typ: if (net_price_single * amount) >= 0.0f64 { InvoiceItemType::Expense } else { InvoiceItemType::Credit },
             pos,
             article_number: groups.name("ARTNR").ok_or(InvoiceParseError::FieldMissingError("item.ARTNR".to_string()))?.as_str().to_string(),
             description: self.extract_description(groups)?,
-            net_price_single,
+            net_price_single: ((net_price_single / packaging_unit_amount) * 1000f64).round() / 1000f64,
             vat,
-            amount,
+            amount: amount * packaging_unit_amount,
             net_total_price: net_price_total,
         })
     }
@@ -189,7 +193,7 @@ pub static METRO: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     r"RECHNUNGS?-? ?NR\.?\:?\s+(?P<INVOICE_NUMBER>[\.\d\/]+)",
     r"RECHNUNGSDATUM:\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4}) (?P<hour>\d\d):(?P<min>\d\d)",
      r"SUMME EUR\s+(?P<SUM>[\d\.,\-]+)([\s\-]+(?P<PAYMENT_TYPE>[a-zA-Z0-9:\-\., ]+) +[\d\.,\-]+)?",
-    r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<INHALTKOLLI>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$",
+    r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<PU_AMOUNT>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$",
     Some(r"^ {26}(?P<DESC>.{50}) *(?P<NET_PRICE_SINGLE>.{11}) (?P<VAT>.)?[ 0-9]{12}$"),
     vec![("A", 0.19f64), ("B", 0.07f64)],
 ));
