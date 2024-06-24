@@ -1,7 +1,7 @@
 use time::{
     Date, Time, PrimitiveDateTime
 };
-use regex::{Captures, Regex};
+use regex::{Captures, Regex, RegexBuilder};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use crate::{
@@ -18,19 +18,27 @@ pub struct RegexVendor {
     invoice_discount_regex: Option<Regex>,
     vat_classes: HashMap<&'static str, f64>
 }
+#[derive(Default,Debug)]
+pub struct ItemRegex {
+    re: &'static str,
+    multi_line: bool,
+    dot_matches_newline: Option<bool>,
+}
 impl RegexVendor {
-    fn new(number_re: &str, date_re: &str, total_re: &str, item_re: &str, discount_re: Option<&str>, vat_entries: Vec<(&'static str, f64)>) -> RegexVendor {
+    fn new(invoice_number: ItemRegex, invoice_date: ItemRegex, invoice_total: ItemRegex, invoice_item: ItemRegex, invoice_discount_item: Option<ItemRegex>, vat_entries: Vec<(&'static str, f64)>) -> RegexVendor {
         let mut vat_map: HashMap<&str, f64> = HashMap::with_capacity(100);
         for (k, v) in vat_entries {
             vat_map.insert(k, v);
         }
-
+        let build_re = |re: &str, multi_line: bool, dot_matches_new_line: bool| -> Regex {
+            RegexBuilder::new(re).multi_line(multi_line).dot_matches_new_line(dot_matches_new_line).build().unwrap()
+        };
         RegexVendor {
-            invoice_number_regex: Regex::new(number_re).unwrap(),
-            invoice_total_regex: Regex::new(total_re).unwrap(),
-            invoice_date_regex: Regex::new(date_re).unwrap(),
-            invoice_item_regex: Regex::new(item_re).unwrap(),
-            invoice_discount_regex: discount_re.and_then(|re| Some(Regex::new(re).unwrap())),
+            invoice_number_regex: build_re(invoice_number.re, !invoice_number.multi_line, invoice_number.dot_matches_newline.unwrap_or(invoice_number.multi_line)),
+            invoice_total_regex: build_re(invoice_total.re, !invoice_total.multi_line, invoice_total.dot_matches_newline.unwrap_or(invoice_total.multi_line)),
+            invoice_date_regex: build_re(invoice_date.re, !invoice_date.multi_line, invoice_date.dot_matches_newline.unwrap_or(invoice_date.multi_line)),
+            invoice_item_regex: build_re(invoice_item.re, !invoice_item.multi_line, invoice_item.dot_matches_newline.unwrap_or(invoice_date.multi_line)),
+            invoice_discount_regex: invoice_discount_item.map(|item| Regex::new(item.re).unwrap()),
             vat_classes: vat_map,
         }
     }
@@ -95,11 +103,10 @@ impl RegexVendor {
                 .collect::<Result<Vec<InvoiceItem>,InvoiceParseError>>()?,
             None => vec![],
         };
-        let mut items: Vec<InvoiceItem> = invoice_text
-            .lines()
-            .filter(|line| self.invoice_item_regex.is_match(line))
-            .map(|line| self.extract_item_from_capture_groups(self.invoice_item_regex.captures(line).unwrap(), &mut position_counter))
-            .collect::<Result<Vec<InvoiceItem>,InvoiceParseError>>()?;
+        let mut items: Vec<InvoiceItem> = self.invoice_item_regex
+            .captures_iter(&invoice_text)
+            .map(|captures| self.extract_item_from_capture_groups(captures, &mut position_counter))
+            .collect::<Result<Vec<InvoiceItem>, InvoiceParseError>>()?;
         items.extend(discount_items);
         Ok(items)
     }
@@ -190,28 +197,28 @@ impl Vendor for RegexVendor {
 }
 
 pub static METRO: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
-    r"RECHNUNGS?-? ?NR\.?\:?\s+(?P<INVOICE_NUMBER>[\.\d\/]+)",
-    r"RECHNUNGSDATUM:\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4}) (?P<hour>\d\d):(?P<min>\d\d)",
-     r"SUMME EUR\s+(?P<SUM>[\d\.,\-]+)([\s\-]+(?P<PAYMENT_TYPE>[a-zA-Z0-9:\-\., ]+) +[\d\.,\-]+)?",
-    r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<PU_AMOUNT>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$",
-    Some(r"^ {26}(?P<DESC>.{50}) *(?P<NET_PRICE_SINGLE>.{11}) (?P<VAT>.)?[ 0-9]{12}$"),
+    ItemRegex {re: r"RECHNUNGS?-? ?NR\.?\:?\s+(?P<INVOICE_NUMBER>[\.\d\/]+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"RECHNUNGSDATUM:\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4}) (?P<hour>\d\d):(?P<min>\d\d)", multi_line: false, ..ItemRegex::default() },
+    ItemRegex {re: r"SUMME EUR\s+(?P<SUM>[\d\.,\-]+)([\s\-]+(?P<PAYMENT_TYPE>[a-zA-Z0-9:\-\., ]+) +[\d\.,\-]+)?", multi_line: false, ..ItemRegex::default() },
+    ItemRegex {re: r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<PU_AMOUNT>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$", multi_line: false, ..ItemRegex::default() },
+    Some(ItemRegex {re: r"^ {26}(?P<DESC>.{50}) *(?P<NET_PRICE_SINGLE>.{11}) (?P<VAT>.)?[ 0-9]{12}$", multi_line: false, ..ItemRegex::default() }),
     vec![("A", 0.19f64), ("B", 0.07f64)],
 ));
 
 pub static BAUHAUS: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
-    r"Einzelrechnung\s+Nr\.\s+(?P<INVOICE_NUMBER>[\.\d\/]+)",
-    r"Rechnungsdatum\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4})",
-    r"Zu zahlender Betrag\s+(?P<SUM>[\d\.,\-]+)\ EUR",
-    r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<DESC>.{1,100})\s+(?P<AMOUNT>\d{1,6}) (ST|KAR)\s+(?P<GROSS_PRICE_SINGLE>.{1,7})\s+(?P<GROSS_PRICE_TOTAL>.{1,7})\s+(?P<VAT>\w)$",
+    ItemRegex {re: r"Einzelrechnung\s+Nr\.\s+(?P<INVOICE_NUMBER>[\.\d\/]+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Rechnungsdatum\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Zu zahlender Betrag\s+(?P<SUM>[\d\.,\-]+)\ EUR", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<DESC>.{1,100})\s+(?P<AMOUNT>\d{1,6}) (ST|KAR)\s+(?P<GROSS_PRICE_SINGLE>.{1,7})\s+(?P<GROSS_PRICE_TOTAL>.{1,7})\s+(?P<VAT>\w)$", multi_line: false, ..ItemRegex::default()},
     None,
     vec![("C", 0.19f64)],
 ));
 
 pub static IKEA: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
-    r"Rechnungsnummer: (?P<INVOICE_NUMBER>\w+)",
-    r"Rechnungsdatum:\s+(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{2,4})",
-    r"Rechnungssumme:\s+€\s+(?P<SUM>[0-9,\.]+)",
-    r"^(?P<ARTNR>\d{2,3}\.\d{2,3}\.\d{2,3})\s+(?P<DESC>.+)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,5},\d{0,2})\s+(?P<VAT>\d{1,2}) %\s+€ (?P<GROSS_PRICE_TOTAL>[0-9,\.]+)$",
+    ItemRegex {re: r"Rechnungsnummer: (?P<INVOICE_NUMBER>\w+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Rechnungsdatum:\s+(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{2,4})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Rechnungssumme:\s+€\s+(?P<SUM>[0-9,\.]+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"^(?P<ARTNR>\d{2,3}\.\d{2,3}\.\d{2,3})\s+(?P<DESC>.+)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,5},\d{0,2})\s+(?P<VAT>\d{1,2}) %\s+€ (?P<GROSS_PRICE_TOTAL>[0-9,\.]+)$", multi_line: false, ..ItemRegex::default()},
     None,
     vec![("19", 0.19f64), ("7", 0.07f64)],
 ));
