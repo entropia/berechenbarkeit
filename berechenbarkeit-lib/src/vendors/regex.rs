@@ -222,3 +222,12 @@ pub static IKEA: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     None,
     vec![("19", 0.19f64), ("7", 0.07f64)],
 ));
+
+pub static MEDICALCORNER: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
+    ItemRegex {re: r"Rechnung\s+(?P<INVOICE_NUMBER>\w+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Rechnungsdatum:\s+\nKundennummer:\s+\nLieferschein:\s+\nLieferdatum:\s+\nBearbeiter:\s+\n.+\n(?<day>\d{1,2})\.(?<month>\d{2})\.(?<year>\d{4})", multi_line: true, ..ItemRegex::default()},
+    ItemRegex {re: r"Gesamt (?<SUM>\d+,\d{2}) EUR", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"\n\n(?P<POS>\d+) (?P<ARTNR>[A-Z0-9-_]+([\w&&[^A-Z]]{4})?) (?P<DESC>.+?) (?P<AMOUNT>\d+) (?<PVAT>\d+)% (?P<GROSS_PRICE_SINGLE>\d+,\d{2}) (?P<GROSS_PRICE_TOTAL>\d+,\d{2})", multi_line: true, dot_matches_newline: Some(true), ..ItemRegex::default()},
+    None,
+    vec![("0", 0.0f64), ("19", 0.19f64), ("7", 0.07f64)]
+));
