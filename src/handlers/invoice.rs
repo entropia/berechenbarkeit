@@ -31,6 +31,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
                 "bauhaus" => Some(InvoiceVendor::Bauhaus),
                 "ikea" => Some(InvoiceVendor::Ikea),
                 "medicalcorner" => Some(InvoiceVendor::MedicalCorner),
+                "moltondiscount" => Some(InvoiceVendor::MoltonDiscount),
                 &_ => None,
             };
         }

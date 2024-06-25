@@ -9,7 +9,7 @@ use thiserror::Error;
 use once_cell::sync::Lazy;
 use time::{PrimitiveDateTime, error::ComponentRange};
 use vendors::regex::{
-    METRO, BAUHAUS, IKEA, MEDICALCORNER,
+    METRO, BAUHAUS, IKEA, MEDICALCORNER, MOLTONDISCOUNT,
 };
 
 pub mod vendors;
@@ -34,6 +34,7 @@ pub enum InvoiceVendor {
     Bauhaus,
     Ikea,
     MedicalCorner,
+    MoltonDiscount,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -77,6 +78,7 @@ impl ToString for InvoiceVendor {
             Self::Bauhaus => "bauhaus".to_string(),
             Self::Ikea => "ikea".to_string(),
             Self::MedicalCorner => "medicalcorner".to_string(),
+            Self::MoltonDiscount => "moltondiscount".to_string(),
         }
     }
 }
@@ -100,6 +102,7 @@ pub fn get_parser_for_vendor(vendor: Option<InvoiceVendor>) -> Option<InvoicePar
         Some(InvoiceVendor::Bauhaus) => Some(InvoiceParser::Regex(&BAUHAUS)),
         Some(InvoiceVendor::Ikea) => Some(InvoiceParser::Regex(&IKEA)),
         Some(InvoiceVendor::MedicalCorner) => Some(InvoiceParser::Regex(&MEDICALCORNER)),
+        Some(InvoiceVendor::MoltonDiscount) => Some(InvoiceParser::Regex(&MOLTONDISCOUNT)),
         None => None
     };
 }

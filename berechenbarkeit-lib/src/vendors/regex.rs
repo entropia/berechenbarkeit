@@ -243,3 +243,13 @@ pub static MEDICALCORNER: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     vec![("0", 0.0f64), ("19", 0.19f64), ("7", 0.07f64)],
     None,
 ));
+
+pub static MOLTONDISCOUNT: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
+    ItemRegex {re: r"Rechnungs-Nr\.\s+(?P<INVOICE_NUMBER>[\w-]+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Datum\s+(?P<day>\d{1,2})\.(?P<month>\d{2})\.(?P<year>\d{4})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Gesamtsumme:\s+(?P<SUM>\d+,\d{2})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"\n(?P<POS>\d+)\s+(?P<DESC>.+?)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d+,\d{2})\s+¬\s+(?P<GROSS_PRICE_TOTAL>\d+,\d{2})", multi_line: true, dot_matches_newline: Some(true), ..ItemRegex::default()},
+    None,
+    vec![("19", 0.19f64)],
+    Some(0.19f64),
+));
