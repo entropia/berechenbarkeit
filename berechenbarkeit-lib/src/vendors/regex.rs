@@ -253,3 +253,13 @@ pub static MOLTONDISCOUNT: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     vec![("19", 0.19f64)],
     Some(0.19f64),
 ));
+
+pub static KOKKU: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
+    ItemRegex {re: r"Rechnungsnummer\s+(?P<INVOICE_NUMBER>\w+)", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Rechnungsdatum\s+(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Gesamtsumme\s+inkl\.\s+MwSt\.:\s+(?P<SUM>\d{1,},\d{2})\s+€", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"\n\n(?P<DESC>[\w\d -]+?)\s+(?P<VAT>\d{1,2}\.\d{1,2})%(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,},\d{1,2})\s+€\s+(?P<GROSS_PRICE_TOTAL>\d{1,},\d{1,2})\s+€", multi_line: true, ..ItemRegex::default()},
+    None,
+    vec![("7.0", 0.07f64)],
+    None,
+));
