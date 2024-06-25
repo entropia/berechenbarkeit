@@ -16,7 +16,8 @@ pub struct RegexVendor {
     invoice_total_regex: Regex,
     invoice_item_regex: Regex,
     invoice_discount_regex: Option<Regex>,
-    vat_classes: HashMap<&'static str, f64>
+    vat_classes: HashMap<&'static str, f64>,
+    default_vat_class: Option<f64>,
 }
 #[derive(Default,Debug)]
 pub struct ItemRegex {
@@ -25,7 +26,7 @@ pub struct ItemRegex {
     dot_matches_newline: Option<bool>,
 }
 impl RegexVendor {
-    fn new(invoice_number: ItemRegex, invoice_date: ItemRegex, invoice_total: ItemRegex, invoice_item: ItemRegex, invoice_discount_item: Option<ItemRegex>, vat_entries: Vec<(&'static str, f64)>) -> RegexVendor {
+    fn new(invoice_number: ItemRegex, invoice_date: ItemRegex, invoice_total: ItemRegex, invoice_item: ItemRegex, invoice_discount_item: Option<ItemRegex>, vat_entries: Vec<(&'static str, f64)>, default_vat_class: Option<f64>) -> RegexVendor {
         let mut vat_map: HashMap<&str, f64> = HashMap::with_capacity(100);
         for (k, v) in vat_entries {
             vat_map.insert(k, v);
@@ -40,6 +41,7 @@ impl RegexVendor {
             invoice_item_regex: build_re(invoice_item.re, !invoice_item.multi_line, invoice_item.dot_matches_newline.unwrap_or(invoice_date.multi_line)),
             invoice_discount_regex: invoice_discount_item.map(|item| Regex::new(item.re).unwrap()),
             vat_classes: vat_map,
+            default_vat_class,
         }
     }
 
@@ -136,7 +138,10 @@ impl RegexVendor {
             None => pos_counter.clone()
         };
         *pos_counter = *pos_counter + 1u32;
-        let vat: f64 = self.get_vat_rate_from_class(groups.name("VAT").unwrap().as_str().trim())?;
+        let vat: f64 = match groups.name("VAT") {
+            Some(class) => self.get_vat_rate_from_class(class.as_str().trim())?,
+            None => self.default_vat_class.ok_or(InvoiceParseError::FieldMissingError("VAT".to_string()))?,
+        };
         let packaging_unit_amount: f64 = match groups.name("PU_AMOUNT") {
             Some(pu_amount) => parse_as_float(pu_amount.as_str().trim()),
             None => 1f64,
@@ -154,7 +159,10 @@ impl RegexVendor {
         Ok(InvoiceItem {
             typ: if (net_price_single * amount) >= 0.0f64 { InvoiceItemType::Expense } else { InvoiceItemType::Credit },
             pos,
-            article_number: groups.name("ARTNR").ok_or(InvoiceParseError::FieldMissingError("item.ARTNR".to_string()))?.as_str().to_string(),
+            article_number: match groups.name("ARTNR") {
+                Some(m) => m.as_str().to_string(),
+                None => "".to_string(),
+            },
             description: self.extract_description(groups)?,
             net_price_single: ((net_price_single / packaging_unit_amount) * 1000f64).round() / 1000f64,
             vat,
@@ -203,6 +211,7 @@ pub static METRO: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     ItemRegex {re: r"^(?P<MM>.) (?P<ARTNR>\d{6}\.\d) (?P<EAN>[\d ]{14}) (?P<DESC>.{31}) (?P<PACK>.{2}) (?P<EINZELPREIS>.{11}) (?P<PU_AMOUNT>.{10}) (?P<NET_PRICE_SINGLE>.{10}) (?P<AMOUNT>.{6}) (?P<NET_PRICE_TOTAL>.{11}) (?P<VAT>.) (?P<STUECKPREIS>.{10})[  ](?P<INT>.) (?P<KD>.+)?$", multi_line: false, ..ItemRegex::default() },
     Some(ItemRegex {re: r"^ {26}(?P<DESC>.{50}) *(?P<NET_PRICE_SINGLE>.{11}) (?P<VAT>.)?[ 0-9]{12}$", multi_line: false, ..ItemRegex::default() }),
     vec![("A", 0.19f64), ("B", 0.07f64)],
+    None,
 ));
 
 pub static BAUHAUS: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
@@ -212,6 +221,7 @@ pub static BAUHAUS: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     ItemRegex {re: r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<DESC>.{1,100})\s+(?P<AMOUNT>\d{1,6}) (ST|KAR)\s+(?P<GROSS_PRICE_SINGLE>.{1,7})\s+(?P<GROSS_PRICE_TOTAL>.{1,7})\s+(?P<VAT>\w)$", multi_line: false, ..ItemRegex::default()},
     None,
     vec![("C", 0.19f64)],
+    None,
 ));
 
 pub static IKEA: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
@@ -221,6 +231,7 @@ pub static IKEA: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     ItemRegex {re: r"^(?P<ARTNR>\d{2,3}\.\d{2,3}\.\d{2,3})\s+(?P<DESC>.+)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,5},\d{0,2})\s+(?P<VAT>\d{1,2}) %\s+€ (?P<GROSS_PRICE_TOTAL>[0-9,\.]+)$", multi_line: false, ..ItemRegex::default()},
     None,
     vec![("19", 0.19f64), ("7", 0.07f64)],
+    None,
 ));
 
 pub static MEDICALCORNER: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
@@ -229,5 +240,6 @@ pub static MEDICALCORNER: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     ItemRegex {re: r"Gesamt (?<SUM>\d+,\d{2}) EUR", multi_line: false, ..ItemRegex::default()},
     ItemRegex {re: r"\n\n(?P<POS>\d+) (?P<ARTNR>[A-Z0-9-_]+([\w&&[^A-Z]]{4})?) (?P<DESC>.+?) (?P<AMOUNT>\d+) (?<PVAT>\d+)% (?P<GROSS_PRICE_SINGLE>\d+,\d{2}) (?P<GROSS_PRICE_TOTAL>\d+,\d{2})", multi_line: true, dot_matches_newline: Some(true), ..ItemRegex::default()},
     None,
-    vec![("0", 0.0f64), ("19", 0.19f64), ("7", 0.07f64)]
+    vec![("0", 0.0f64), ("19", 0.19f64), ("7", 0.07f64)],
+    None,
 ));
