@@ -29,6 +29,8 @@ pub enum InvoiceParseError {
     FieldMissingError(String),
     #[error("Unrecognized VAT class '{0}'")]
     UnrecognizedVatClass(String),
+    #[error("Unknown vendor: '{0}'")]
+    UnknownVendorError(String),
 }
 
 #[derive(Debug, Clone, Serialize, EnumIter)]
@@ -101,14 +103,31 @@ impl fmt::Display for InvoiceVendor {
     }
 }
 
+impl TryFrom<String> for InvoiceVendor {
+    type Error = crate::InvoiceParseError;
+    fn try_from(e: String) -> Result<Self, Self::Error> {
+        InvoiceVendor::iter()
+            .find(|vendor| vendor.to_string().to_lowercase() == e)
+            .ok_or(InvoiceParseError::UnknownVendorError(e))
+    }
+}
+
+impl From<InvoiceVendor> for InvoiceParser {
+    fn from(e: InvoiceVendor) -> Self {
+        match e {
+            InvoiceVendor::Metro => InvoiceParser::Regex(&METRO),
+            InvoiceVendor::Bauhaus => InvoiceParser::Regex(&BAUHAUS),
+            InvoiceVendor::Ikea => InvoiceParser::Regex(&IKEA),
+            InvoiceVendor::MedicalCorner => InvoiceParser::Regex(&MEDICALCORNER),
+            InvoiceVendor::MoltonDiscount => InvoiceParser::Regex(&MOLTONDISCOUNT),
+            InvoiceVendor::Kokku => InvoiceParser::Regex(&KOKKU),
+        }
+    }
+}
+
 pub fn get_parser_for_vendor(vendor: Option<InvoiceVendor>) -> Option<InvoiceParser> {
-    return match vendor {
-        Some(InvoiceVendor::Metro) => Some(InvoiceParser::Regex(&METRO)),
-        Some(InvoiceVendor::Bauhaus) => Some(InvoiceParser::Regex(&BAUHAUS)),
-        Some(InvoiceVendor::Ikea) => Some(InvoiceParser::Regex(&IKEA)),
-        Some(InvoiceVendor::MedicalCorner) => Some(InvoiceParser::Regex(&MEDICALCORNER)),
-        Some(InvoiceVendor::MoltonDiscount) => Some(InvoiceParser::Regex(&MOLTONDISCOUNT)),
-        Some(InvoiceVendor::Kokku) => Some(InvoiceParser::Regex(&KOKKU)),
-        None => None
-    };
+    match vendor {
+        Some(v) => Some(InvoiceParser::from(v)),
+        None => None,
+    }
 }
