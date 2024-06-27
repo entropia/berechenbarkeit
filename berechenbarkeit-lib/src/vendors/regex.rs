@@ -263,3 +263,13 @@ pub static KOKKU: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     vec![("7.0", 0.07f64)],
     None,
 ));
+
+pub static ROHALM: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
+    ItemRegex {re: r"(?P<INVOICE_NUMBER>[\w\d]+)\s+(?P<CUSTOMER_NUMBER>\d+)\s+\d{2}\.\d{2}\.\d{4}\s+\d{2}\.\d{2}\.\d{4}", multi_line: true, ..ItemRegex::default()},
+    ItemRegex {re: r"(?P<INVOICE_NUMBER>[\w\w]+)\s+(?P<CUSTOMER_NUMBER>\d+)\s+(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})\s+\d{2}\.\d{2}\.\d{4}", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"Gesamtbetrag\*\s+(?P<SUM>\d{1,},\d{1,2})", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"\n\n(?P<POS>\d+)\s+(?P<DESC>.+?)\s+(?P<AMOUNT>\d+)\s+(?P<GROSS_PRICE_SINGLE>\d{1,},\d{2})\s+(?P<GROSS_PRICE_TOTAL>\d{1,},\d{2})", multi_line: true, dot_matches_newline: Some(true), ..ItemRegex::default()},
+    None,
+    vec![("19.0", 0.19f64)],
+    Some(0.19f64),
+));

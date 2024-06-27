@@ -12,7 +12,7 @@ use time::{PrimitiveDateTime, error::ComponentRange};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use vendors::regex::{
-    METRO, BAUHAUS, IKEA, MEDICALCORNER, MOLTONDISCOUNT, KOKKU
+    METRO, BAUHAUS, IKEA, MEDICALCORNER, MOLTONDISCOUNT, KOKKU, ROHALM
 };
 
 pub mod vendors;
@@ -41,6 +41,7 @@ pub enum InvoiceVendor {
     MedicalCorner,
     MoltonDiscount,
     Kokku,
+    Rohalm,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -99,6 +100,7 @@ impl fmt::Display for InvoiceVendor {
             Self::MedicalCorner => write!(f, "MedicalCorner"),
             Self::MoltonDiscount => write!(f, "MoltonDiscount"),
             Self::Kokku => write!(f, "Kokku"),
+            Self::Rohalm => write!(f, "Rohalm")
         }
     }
 }
@@ -121,6 +123,7 @@ impl From<InvoiceVendor> for InvoiceParser {
             InvoiceVendor::MedicalCorner => InvoiceParser::Regex(&MEDICALCORNER),
             InvoiceVendor::MoltonDiscount => InvoiceParser::Regex(&MOLTONDISCOUNT),
             InvoiceVendor::Kokku => InvoiceParser::Regex(&KOKKU),
+            InvoiceVendor::Rohalm => InvoiceParser::Regex(&ROHALM),
         }
     }
 }
