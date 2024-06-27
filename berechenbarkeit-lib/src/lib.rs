@@ -9,6 +9,8 @@ use serde::Serialize;
 use thiserror::Error;
 use once_cell::sync::Lazy;
 use time::{PrimitiveDateTime, error::ComponentRange};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 use vendors::regex::{
     METRO, BAUHAUS, IKEA, MEDICALCORNER, MOLTONDISCOUNT, KOKKU
 };
@@ -29,7 +31,7 @@ pub enum InvoiceParseError {
     UnrecognizedVatClass(String),
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, EnumIter)]
 pub enum InvoiceVendor {
     Metro,
     Bauhaus,

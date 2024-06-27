@@ -13,6 +13,8 @@ pdf-extract = "0.7.2"
 regex = "1.10.2"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.111"
+strum = "0.26.3"
+strum_macros = "0.26.4"
 thiserror = "1.0.56"
 time = { version = "0.3.31", features = ["local-offset", "serde", "serde-human-readable"] }
 yap = "0.12.0"
