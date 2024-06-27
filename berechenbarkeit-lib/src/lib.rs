@@ -45,6 +45,10 @@ pub enum InvoiceItemType {
     Credit
 }
 
+pub enum InvoiceParser {
+    Regex(&'static Lazy<vendors::regex::RegexVendor>),
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct InvoiceItem {
     pub typ: InvoiceItemType,
@@ -72,6 +76,15 @@ pub struct Invoice {
     pub items: Vec<InvoiceItem>,
 }
 
+#[derive(Parser)]
+struct Cli {
+    /// Path to PDF file
+    path: PathBuf,
+}
+
+pub trait Vendor {
+    fn extract_invoice_data(&self, pdf: &[u8], vendor: InvoiceVendor) -> anyhow::Result<Invoice>;
+}
 
 impl fmt::Display for InvoiceVendor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -84,19 +97,6 @@ impl fmt::Display for InvoiceVendor {
             Self::Kokku => write!(f, "Kokku"),
         }
     }
-}
-
-pub enum InvoiceParser {
-    Regex(&'static Lazy<vendors::regex::RegexVendor>),
-}
-
-pub trait Vendor {
-    fn extract_invoice_data(&self, pdf: &[u8], vendor: InvoiceVendor) -> anyhow::Result<Invoice>;
-}
-#[derive(Parser)]
-struct Cli {
-    /// Path to PDF file
-    path: PathBuf,
 }
 
 pub fn get_parser_for_vendor(vendor: Option<InvoiceVendor>) -> Option<InvoiceParser> {
