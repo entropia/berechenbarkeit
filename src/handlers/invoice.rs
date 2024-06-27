@@ -4,7 +4,7 @@ use std::io::Write;
 use std::str::FromStr;
 use askama::Template;
 use axum::body::Bytes;
-use axum::extract::{Multipart, Path, RawForm};
+use axum::extract::{Path, RawForm};
 use axum::Json;
 use axum::response::{IntoResponse, Redirect};
 use serde::Serialize;
@@ -16,31 +16,20 @@ use berechenbarkeit_lib::{
 };
 use crate::{AppError, HtmlTemplate};
 use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
+use axum_typed_multipart::{TryFromMultipart, TypedMultipart};
 
-pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseConnection, mut multipart: Multipart) -> Result<Redirect, AppError> {
-    let mut file: Option<Bytes> = None;
-    let mut vendor: Option<InvoiceVendor> = None;
-    while let Some(field) = multipart.next_field().await.unwrap() {
-        let name = field.name().unwrap().to_string();
-        let data = field.bytes().await.unwrap();
-        if name == "file" {
-            file = Some(data);
-        } else if name == "vendor" {
-            vendor = match std::str::from_utf8(&data)? {
-                "metro" => Some(InvoiceVendor::Metro),
-                "bauhaus" => Some(InvoiceVendor::Bauhaus),
-                "ikea" => Some(InvoiceVendor::Ikea),
-                "medicalcorner" => Some(InvoiceVendor::MedicalCorner),
-                "moltondiscount" => Some(InvoiceVendor::MoltonDiscount),
-                "kokku" => Some(InvoiceVendor::Kokku),
-                &_ => None,
-            };
-        }
-    }
+
+#[derive(TryFromMultipart, Debug)]
+pub(crate) struct InvoiceUploadRequest {
+    vendor: String,
+    file: Bytes,
+}
+
+pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseConnection, TypedMultipart(data): TypedMultipart<InvoiceUploadRequest>) -> Result<Redirect, AppError> {
+    let vendor: Option<InvoiceVendor> = TryInto::<InvoiceVendor>::try_into(data.vendor).ok();
     let parser: Option<InvoiceParser> = get_parser_for_vendor(vendor.clone());
 
-    // This error should never happen, as we have the HTTP form under our control
-    let file = file.unwrap();
+    let file = data.file;
 
     let parsed_invoice = match parser.unwrap() {
         InvoiceParser::Regex(p) => p.extract_invoice_data(&file, vendor.unwrap())?
