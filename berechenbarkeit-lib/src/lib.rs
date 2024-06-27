@@ -125,6 +125,12 @@ impl From<InvoiceVendor> for InvoiceParser {
     }
 }
 
+pub fn get_vendors() -> Vec<String> {
+    InvoiceVendor::iter()
+        .map(|vendor| vendor.to_string())
+        .collect()
+}
+
 pub fn get_parser_for_vendor(vendor: Option<InvoiceVendor>) -> Option<InvoiceParser> {
     match vendor {
         Some(v) => Some(InvoiceParser::from(v)),
