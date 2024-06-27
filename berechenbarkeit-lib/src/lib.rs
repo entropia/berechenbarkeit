@@ -1,6 +1,7 @@
 use std::{
     path::PathBuf,
     num::{ParseFloatError, ParseIntError},
+    fmt,
 };
 
 use clap::Parser;
@@ -72,15 +73,15 @@ pub struct Invoice {
 }
 
 
-impl ToString for InvoiceVendor {
-    fn to_string(&self) -> String {
+impl fmt::Display for InvoiceVendor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Metro => "metro".to_string(),
-            Self::Bauhaus => "bauhaus".to_string(),
-            Self::Ikea => "ikea".to_string(),
-            Self::MedicalCorner => "medicalcorner".to_string(),
-            Self::MoltonDiscount => "moltondiscount".to_string(),
-            Self::Kokku => "kokku".to_string(),
+            Self::Metro => write!(f, "Metro"),
+            Self::Bauhaus => write!(f, "Bauhaus"),
+            Self::Ikea => write!(f, "IKEA"),
+            Self::MedicalCorner => write!(f, "MedicalCorner"),
+            Self::MoltonDiscount => write!(f, "MoltonDiscount"),
+            Self::Kokku => write!(f, "Kokku"),
         }
     }
 }
