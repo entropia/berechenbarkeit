@@ -74,6 +74,7 @@ pub(crate) struct DBInvoiceItem {
     pub vat_exempt: bool,
     pub cost_centre_id: Option<i64>,
     pub cost_centre: Option<String>,
+    pub project_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,12 +93,13 @@ pub(crate) struct InvoiceItemExtended {
     pub vat_exempt: bool,
     pub cost_centre_id: Option<i64>,
     pub cost_centre: Option<String>,
+    pub project_id: Option<i64>,
 }
 
 impl DBInvoiceItem {
     pub(crate) async fn bulk_insert(connection: &mut PgConnection, objects: Vec<DBInvoiceItem>) -> DBResult<()> {
         let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
-            "INSERT INTO invoice_item (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id)",
+            "INSERT INTO invoice_item (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id, project_id)",
         );
         qb.push_values(objects.iter(), |mut b, rec| {
             b
@@ -109,7 +111,8 @@ impl DBInvoiceItem {
                 .push_bind(rec.net_price_single)
                 .push_bind(rec.vat)
                 .push_bind(rec.vat_exempt)
-                .push_bind(rec.cost_centre_id);
+                .push_bind(rec.cost_centre_id)
+                .push_bind(rec.project_id);
         });
 
         qb.build().execute(connection).await?;
@@ -143,6 +146,15 @@ impl DBInvoiceItem {
         Ok(())
     }
 
+    pub(crate) async fn update_project(id: i64, project: i64, connection: &mut PgConnection) -> DBResult<()> {
+        sqlx::query!(
+            r#"UPDATE "invoice_item" SET project_id = $2 WHERE ID = $1"#,
+            id,
+            project,
+        ).execute(connection).await?;
+        Ok(())
+    }
+
     pub(crate) async fn update_vat_exemption(id: i64, vat_exempt: bool, connection: &mut PgConnection) -> DBResult<()> {
         sqlx::query!(r#"UPDATE "invoice_item" SET vat_exempt=$1 WHERE id=$2"#, vat_exempt, id).execute(connection).await?;
         Ok(())
@@ -150,7 +162,7 @@ impl DBInvoiceItem {
 
     pub(crate) async fn insert(object: DBInvoiceItem, connection: &mut PgConnection) -> DBResult<i64> {
         Ok(sqlx::query!(
-            r#"INSERT INTO "invoice_item" (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"#,
+            r#"INSERT INTO "invoice_item" (position, invoice_id, typ, description, amount, net_price_single, vat, vat_exempt, cost_centre_id, project_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"#,
             object.position,
             object.invoice_id,
             object.typ,
@@ -160,6 +172,7 @@ impl DBInvoiceItem {
             object.vat,
             object.vat_exempt,
             object.cost_centre_id,
+            object.project_id,
         ).fetch_one(connection).await?.id)
     }
 }
