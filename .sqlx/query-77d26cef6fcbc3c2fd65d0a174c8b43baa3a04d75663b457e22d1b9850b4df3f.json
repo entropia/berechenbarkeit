@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO \"project\" (name, description, active, \"default\", \"start\", \"end\") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "start",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 5,
+        "name": "end",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 6,
+        "name": "default",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Bool",
+        "Bool",
+        "Timestamp",
+        "Timestamp"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "77d26cef6fcbc3c2fd65d0a174c8b43baa3a04d75663b457e22d1b9850b4df3f"
+}

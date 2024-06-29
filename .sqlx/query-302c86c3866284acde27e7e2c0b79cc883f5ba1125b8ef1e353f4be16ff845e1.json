@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE \"invoice_item\" SET project_id = $2 WHERE ID = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "302c86c3866284acde27e7e2c0b79cc883f5ba1125b8ef1e353f4be16ff845e1"
+}

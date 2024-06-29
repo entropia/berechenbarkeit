@@ -25,7 +25,8 @@ use crate::{AppError, HtmlTemplate};
 use crate::db::{
     util::DatabaseConnection,
     cost_centres::DBCostCentre,
-    invoices::{DBInvoice, DBInvoiceItem}
+    invoices::{DBInvoice, DBInvoiceItem},
+    projects::DBProject,
 };
 use axum_typed_multipart::{TryFromMultipart, TypedMultipart};
 
@@ -62,6 +63,7 @@ pub(crate) async fn invoice_add_upload(DatabaseConnection(mut conn): DatabaseCon
         vat_exempt: false,
         cost_centre_id: None,
         cost_centre: None,
+        project_id: None,
     }).collect()).await?;
 
     let file_storage_base_path = std::env::var("BERECHENBARKEIT_STORAGE_BASE_PATH");
@@ -81,6 +83,7 @@ struct InvoiceEditTemplate {
     invoice: DBInvoice,
     invoice_items: Vec<DBInvoiceItem>,
     cost_centres: Vec<DBCostCentre>,
+    projects: Vec<DBProject>,
     diff_invoice_item_sum: f64
 }
 
@@ -104,12 +107,19 @@ pub(crate) async fn invoice_edit(DatabaseConnection(mut conn): DatabaseConnectio
     let invoice = DBInvoice::get_by_id(invoice_id, &mut conn).await?;
     let invoice_items = DBInvoiceItem::get_by_invoice_id(invoice_id, &mut conn).await?;
     let cost_centres = DBCostCentre::get_all(&mut conn).await?;
+    let projects = DBProject::get(&mut conn).await?;
     let diff_invoice_item_sum = f64::round((invoice.sum_gross - DBInvoiceItem::calculate_sum_gross_by_invoice_id(invoice_id, &mut conn).await?) * 1000f64) / 1000f64;
+    let used_project_ids: Vec<_> = invoice_items
+        .clone()
+        .into_iter()
+        .map(|invoice_item| invoice_item.project_id)
+        .collect();
 
     Ok(HtmlTemplate(InvoiceEditTemplate {
         invoice,
         invoice_items,
         cost_centres,
+        projects: projects.into_iter().filter(|p| p.active || used_project_ids.contains(&p.id)).collect(),
         diff_invoice_item_sum
     }))
 }
@@ -154,7 +164,8 @@ pub(crate) async fn invoice_item_split(DatabaseConnection(mut conn): DatabaseCon
         vat: invoice_item.vat,
         vat_exempt: false,
         cost_centre_id: None,
-        cost_centre: None
+        cost_centre: None,
+        project_id: None,
     }, &mut conn).await?;
     Ok(Json(InvoiceItemSplitResponse {
         new_id
@@ -185,6 +196,11 @@ pub(crate) async fn invoice_edit_submit(DatabaseConnection(mut conn): DatabaseCo
             }
             vat_exempt_items_changed.insert(invoiceitem_id);
             DBInvoiceItem::update_vat_exemption(invoiceitem_id, true, &mut conn).await?;
+        } else if data_type == "project" {
+            if !form_field.1.is_empty() {
+                let project_id: i64 = form_field.1.parse()?;
+                DBInvoiceItem::update_project(invoiceitem_id, project_id, &mut conn).await?;
+            }
         }
     };
 

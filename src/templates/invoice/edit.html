@@ -13,16 +13,32 @@
 
 <form id="invoice-edit-form" method="post">
     <div class="row pb-2 pt-2 border-top">
-        <div class="col-xl-5"><b>Produkt</b></div>
+        <div class="col-xl-3"><b>Produkt</b></div>
         <div class="col-xl-1"><b>Menge</b></div>
         <div class="col-xl-1"><b>Einzelpreis (Netto)</b></div>
         <div class="col-xl-1"><b>MwSt</b></div>
         <div class="col-xl-1"><b>MwSt-befreit?</b></div>
-        <div class="col-xl-2"><b>Kostenstelle</b></div>
+        <div class="col-xl-2">
+            <select class="form-control no-validate" id="invoice-edit-change-global-cost-centre">
+                <option {% if true %}selected{% endif %} value="" disabled><b>Kostenstelle auswählen</b></option>
+                {% for cc in cost_centres %}
+                <option value="{{ cc.id }}">{{ cc.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-xl-2">
+            <select class="form-control no-validate" id="invoice-edit-change-global-project">
+                <option {% if true %}selected{% endif %} value="" disabled><b>Projekt auswählen</b></option>
+                {% for project in projects %}
+                <option value="{{ project.id.unwrap() }}" {% if !project.active %}disabled{% endif %} >{{ project.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-xl-1"></div>
     </div>
     {% for ii in invoice_items %}
     <div class="row pb-2 pt-2 border-top">
-        <div class="col-xl-5">
+        <div class="col-xl-3">
             <span>{{ii.description}}</span>
         </div>
         <div class="col-xl-1">
@@ -36,10 +52,18 @@
             </div>
         </div>
         <div class="col-xl-2">
-            <select class="form-select" name="{{ ii.id.unwrap() }}-costcentre">
-                <option {% if ii.cost_centre_id.is_none() %}selected{% endif %} value="">Auswählen</option>
+            <select class="form-select invoice-edit-change-item-cost-centre" name="{{ ii.id.unwrap() }}-costcentre">
+                <option {% if ii.cost_centre_id.is_none() %}selected{% endif %} value="">Kostenstelle auswählen</option>
                 {% for cc in cost_centres %}
                 <option {% if ii.cost_centre_id.is_some() && ii.cost_centre_id.unwrap() == cc.id %}selected{% endif %} value="{{cc.id}}">{{cc.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-xl-2">
+            <select class="form-select invoice-edit-change-item-project" name="{{ ii.id.unwrap() }}-project">
+                <option {% if true %}selected{% endif %} value="" disabled>Auswählen</option>
+                {% for project in projects %}
+                    <option value="{{ project.id.unwrap() }}" {% if !project.active && (ii.project_id.is_none() || ii.project_id.unwrap() != project.id.unwrap()) %}disabled {% endif %}{% if ii.project_id.is_some() && ii.project_id.unwrap() == project.id.unwrap() %}selected{% endif %}>{{ project.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -59,7 +83,7 @@
 {% block extra_js %}
 <script>
     const form = document.querySelector("form#invoice-edit-form")
-    const inputs = document.querySelectorAll('form#invoice-edit-form select');
+    const inputs = document.querySelectorAll('form#invoice-edit-form select:not(.no-validate)');
     Array.from(inputs).forEach(input => {
         if (input.value === "") {
             input.classList.add("is-invalid")
@@ -88,6 +112,19 @@
           form.submit()
         })
       })
-    })
+    });
+
+    document.querySelector('#invoice-edit-change-global-cost-centre').addEventListener('change', e => {
+        [...document.querySelectorAll('.invoice-edit-change-item-cost-centre')].forEach(node => {
+            node.value = e.target.value;
+            node.dispatchEvent(new Event('change'));
+        });
+    });
+    document.getElementById('invoice-edit-change-global-project').addEventListener('change', e => {
+        [...document.querySelectorAll('.invoice-edit-change-item-project')].forEach(node => {
+            node.value = e.target.value;
+            node.dispatchEvent(new Event('change'));
+        });
+    });
 </script>
 {% endblock extra_js %}

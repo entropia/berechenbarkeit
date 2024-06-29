@@ -55,6 +55,11 @@
       },
       {
         "ordinal": 10,
+        "name": "project_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 11,
         "name": "cost_centre?",
         "type_info": "Varchar"
       }
@@ -75,6 +80,7 @@
       true,
       false,
       false,
+      true,
       false
     ]
   },

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE \"project\" SET \"default\" = false WHERE \"default\";",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "c55d88e26088b1e60081d790e48bffa8323287cb9e872872401d3a8d3a77d191"
+}

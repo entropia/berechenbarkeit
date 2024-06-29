@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Projekte</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Projekt</th>
+            <th scope="col">Beschreibung</th>
+            <th scope="col">Aktiv</th>
+            <th scope="col">Standard</th>
+            <th scope="col">(Start)</th>
+            <th scope="col">(Ende)</th>
+            <th scope="col">Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for i in projects %}
+        <tr>
+            <th scope="row">{{ i.id.unwrap() }}</th>
+            <td>{{ i.name }}</td>
+            <td>{{ i.description }}</td>
+            <td>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if i.active %}checked="{{ i.active }}"{% endif %} disabled />
+                </div>
+            </td>
+            <td>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" {% if i.default %}checked="checked"{% endif %} disabled />
+                </div>
+            </td>
+            <td><input type="datetime-local" class="form-control" value="{{ i.start }}" disabled /></td>
+            <td><input type="datetime-local" class="form-control" value="{{ i.end }}" disabled /></td>
+            <td>
+                <a href="/projects/{{ i.id.unwrap() }}/edit" data-id="{{ i.id.unwrap() }}" type="button" class="btn btn-secondary btn-project-edit">Bearbeiten</a>
+                <a href="/projects/{{ i.id.unwrap() }}/delete" hx-delete="/projects/{{ i.id.unwrap() }}" hx-confirm="Projekt jetzt sofort loeschen?!?!1?" type="button" class="btn btn-danger btn-project-delete">Löschen</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<form class="mb-3">
+    <a type="button" href="/projects/new" class="btn btn-primary">Hinzufügen</a>
+</form>
+{% endblock content %}

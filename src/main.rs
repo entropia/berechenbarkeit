@@ -6,7 +6,7 @@ use axum::{
 use axum::extract::{DefaultBodyLimit, MatchedPath};
 use axum::http::Request;
 use axum::response::{Html, Response};
-use axum::routing::{get, post};
+use axum::routing::{get, post, delete};
 use clap::Parser;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::services::ServeDir;
@@ -54,6 +54,11 @@ async fn main() {
         .route("/invoice/:invoice_id/invoiceitem/:invoiceitem_id/split", post(handlers::invoice::invoice_item_split))
         .route("/invoice/:invoice_id/edit", get(handlers::invoice::invoice_edit).post(handlers::invoice::invoice_edit_submit))
         .route("/invoice/:invoice_id/delete", get(handlers::invoice::invoice_delete_confirm).post(handlers::invoice::invoice_delete))
+        .route("/projects", get(handlers::projects::list).post(handlers::projects::add))
+        .route("/projects/default", put(handlers::projects::set_default).post(handlers::projects::set_default).delete(handlers::projects::clear_default))
+        .route("/projects/new", get(handlers::projects::new_project_page))
+        .route("/projects/:id", delete(handlers::projects::delete).put(handlers::projects::update))
+        .route("/projects/:id/edit", get(handlers::projects::edit_project_page))
         .route("/cost_centres", get(handlers::cost_centre::cost_centre_list).post(handlers::cost_centre::cost_centre_add))
         .route("/cost_centre/:cost_centre_id/delete", get(handlers::cost_centre::cost_centre_delete))
         .route("/summary", get(handlers::summary::summary_overview))

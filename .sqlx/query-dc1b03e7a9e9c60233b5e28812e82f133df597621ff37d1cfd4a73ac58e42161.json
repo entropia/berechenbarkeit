@@ -1,0 +1,56 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM \"project\" ORDER BY id ASC;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "start",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 5,
+        "name": "end",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 6,
+        "name": "default",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "dc1b03e7a9e9c60233b5e28812e82f133df597621ff37d1cfd4a73ac58e42161"
+}

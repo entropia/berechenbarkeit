@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if project.active %}
+<form>
+    <input type="hidden" class="d-none" value="{{ project.id.unwrap() }}" name="id" />
+    <a type="button" class="btn btn-secondary float-end" hx-put="/projects/default">Zum Standardprojekt machen</a>
+</form>
+{% endif %}
+<h2>Projekte</h2>
+<h3>Projekt bearbeiten</h3>
+<form>
+    <label for="project-add-input">Name</label>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="project-add-input" name="name" value="{{ project.name }}" />
+    </div>
+    <label for="project-desc-add-input">Beschreibung</label>
+    <div class="input-group mb-3">
+        <textarea id="project-desc-add-input" name="description" class="form-control">{{ project.description }}</textarea>
+    </div>
+    <div class="input-group mb-3">
+        <div class="col-md-4">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="active" value="true" {% if project.active %}checked{% endif %} id="project-add-active" /><label class="form-check-label" for="project-add-active">Aktiv?</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label for="project-add-start">Start</label>
+                <input type="datetime-local" name="start" class="form-control" id="project-add-start" value="{{ project.start }}"/>
+        </div>
+        <div class="col-md-4">
+            <label for="project-add-end">End</label>
+            <input type="datetime-local" name="end" class="form-control" id="project-add-end" value="{{ project.end }}"/>
+        </div>
+    </div>
+    <button class="btn btn-primary btn-project-save" hx-put="/projects/{{ project.id.unwrap() }}">Speichern</button>
+</form>
+{% endblock content %}

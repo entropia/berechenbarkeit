@@ -19,7 +19,10 @@ use sqlx::{
     pool::PoolConnection,
     postgres::PgPool
 };
-use time::PrimitiveDateTime;
+use time::{
+    macros::format_description,
+    PrimitiveDateTime,
+};
 
 pub(crate) type DBResult<T, E = sqlx::Error> = std::result::Result<T, E>;
 
@@ -33,7 +36,8 @@ pub(crate) struct DbDate {
 
 impl fmt::Display for DbDate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.datetime.map(|d| d.to_string()).unwrap_or("".to_string()))
+        let format = format_description!("[year]-[month]-[day]T[hour]:[minute]:[second]");
+        write!(f, "{}", self.datetime.map(|d| d.format(&format).ok()).flatten().unwrap_or("".to_string()))
     }
 }
 
