@@ -22,7 +22,11 @@ use berechenbarkeit_lib::{
     get_parser_for_vendor,
 };
 use crate::{AppError, HtmlTemplate};
-use crate::db::{DatabaseConnection, DBCostCentre, DBInvoice, DBInvoiceItem};
+use crate::db::{
+    util::DatabaseConnection,
+    cost_centres::DBCostCentre,
+    invoices::{DBInvoice, DBInvoiceItem}
+};
 use axum_typed_multipart::{TryFromMultipart, TypedMultipart};
 
 

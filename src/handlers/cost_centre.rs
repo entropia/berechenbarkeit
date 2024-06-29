@@ -5,7 +5,10 @@ use axum::response::Redirect;
 use axum_core::response::IntoResponse;
 use serde::Deserialize;
 use crate::{AppError, HtmlTemplate};
-use crate::db::{DatabaseConnection, DBCostCentre};
+use crate::db::{
+    util::DatabaseConnection,
+    cost_centres::DBCostCentre
+};
 
 #[derive(Template)]
 #[template(path = "cost_centre/list.html")]

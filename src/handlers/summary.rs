@@ -1,7 +1,11 @@
 use askama::Template;
 use axum_core::response::IntoResponse;
 use crate::{AppError, HtmlTemplate};
-use crate::db::{CostCentreWithSum, DatabaseConnection, DBCostCentre, DBInvoiceItem};
+use crate::db::{
+    cost_centres::{CostCentreWithSum, DBCostCentre},
+    util::DatabaseConnection,
+    invoices::DBInvoiceItem
+};
 use http::header;
 
 #[derive(Template)]
