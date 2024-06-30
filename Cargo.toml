@@ -19,7 +19,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 berechenbarkeit-lib = { path = "berechenbarkeit-lib" }
 anyhow = "1.0"
 sqlx = { version = "0.7" , features = ["postgres", "runtime-tokio-rustls", "any", "bigdecimal", "time"]}
-time = { version = "0.3", features = ["local-offset", "serde", "serde-human-readable"] }
+time = { version = "0.3", features = ["local-offset", "serde", "serde-human-readable", "parsing"] }
 clap = { version = "4.5", features = ["derive", "env"] }
 csv = "1.3"
 http = "1.1.0"
