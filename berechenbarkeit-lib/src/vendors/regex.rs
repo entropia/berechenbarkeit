@@ -218,7 +218,7 @@ pub static BAUHAUS: Lazy<RegexVendor> = Lazy::new(|| RegexVendor::new(
     ItemRegex {re: r"Einzelrechnung\s+Nr\.\s+(?P<INVOICE_NUMBER>[\.\d\/]+)", multi_line: false, ..ItemRegex::default()},
     ItemRegex {re: r"Rechnungsdatum\s+(?P<day>\d\d)\.(?P<month>\d\d)\.(?P<year>\d{4})", multi_line: false, ..ItemRegex::default()},
     ItemRegex {re: r"Zu zahlender Betrag\s+(?P<SUM>[\d\.,\-]+)\ EUR", multi_line: false, ..ItemRegex::default()},
-    ItemRegex {re: r"^(?P<POS>\d)\s+(?P<ARTNR>\d{8})\s+(?P<DESC>.{1,100})\s+(?P<AMOUNT>\d{1,6}) (ST|KAR)\s+(?P<GROSS_PRICE_SINGLE>.{1,7})\s+(?P<GROSS_PRICE_TOTAL>.{1,7})\s+(?P<VAT>\w)$", multi_line: false, ..ItemRegex::default()},
+    ItemRegex {re: r"^(?P<POS>\d+)\s+(?P<ARTNR>\d{8})\s+(?P<DESC>.{1,100})\s+(?P<AMOUNT>\d{1,6}) (ST|KAR)\s+(?P<GROSS_PRICE_SINGLE>.{1,7})\s+(?P<GROSS_PRICE_TOTAL>.{1,7})\s+(?P<VAT>\w)$", multi_line: false, ..ItemRegex::default()},
     None,
     vec![("C", 0.19f64)],
     None,
