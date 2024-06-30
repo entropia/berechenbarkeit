@@ -6,7 +6,7 @@ use axum::{
 use axum::extract::{DefaultBodyLimit, MatchedPath};
 use axum::http::Request;
 use axum::response::{Html, Response};
-use axum::routing::{get, post, delete};
+use axum::routing::{get, post, delete, put};
 use clap::Parser;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::services::ServeDir;
@@ -60,6 +60,7 @@ async fn main() {
         .route("/projects/:id", delete(handlers::projects::delete).put(handlers::projects::update))
         .route("/projects/:id/edit", get(handlers::projects::edit_project_page))
         .route("/cost_centres", get(handlers::cost_centre::cost_centre_list).post(handlers::cost_centre::cost_centre_add))
+        .route("/cost_centre/:cost_centre_id", put(handlers::cost_centre::update))
         .route("/cost_centre/:cost_centre_id/delete", get(handlers::cost_centre::cost_centre_delete))
         .route("/summary", get(handlers::summary::summary_overview))
         .route("/summary/aggregated_csv", get(handlers::summary::summary_csv_aggregated))

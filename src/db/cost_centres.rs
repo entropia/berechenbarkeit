@@ -23,7 +23,7 @@ pub(crate) struct CostCentreWithSum {
 
 impl DBCostCentre {
     pub(crate) async fn get_all(connection: &mut PgConnection) -> DBResult<Vec<DBCostCentre>> {
-        sqlx::query_as!(DBCostCentre, r#"SELECT id, name FROM "cost_centre""#).fetch_all(connection).await
+        sqlx::query_as!(DBCostCentre, r#"SELECT id, name FROM "cost_centre" ORDER BY id ASC"#).fetch_all(connection).await
     }
 
     pub(crate) async fn insert(name: &str, connection: &mut PgConnection) -> DBResult<i64> {
@@ -31,6 +31,15 @@ impl DBCostCentre {
             r#"INSERT INTO "cost_centre" (name) VALUES ($1) RETURNING id"#,
             name,
         ).fetch_one(connection).await?.id)
+    }
+
+    pub(crate) async fn update(id: i64, name: &str, connection: &mut PgConnection) -> DBResult<DBCostCentre> {
+        Ok(sqlx::query_as!(
+                DBCostCentre,
+                r#"UPDATE "cost_centre" SET "name" = $2 WHERE id = $1 RETURNING *"#,
+                id,
+                name,
+        ).fetch_one(connection).await?)
     }
 
     pub(crate) async fn delete(id: i64, connection: &mut PgConnection) -> DBResult<()> {

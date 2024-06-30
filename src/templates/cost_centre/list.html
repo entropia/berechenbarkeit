@@ -8,19 +8,40 @@
     <tr>
         <th scope="col">ID</th>
         <th scope="col">Name</th>
-        <th scope="col">Aktionen</th>
+        <th scope="col"></th>
     </tr>
     </thead>
     <tbody>
     {% for i in cost_centres %}
     <tr>
-        <th scope="row">{{i.id}}</th>
-        <td>{{i.name}}</td>
-        <td><a href="/cost_centre/{{i.id}}/delete" type="button" class="btn btn-secondary">Löschen</a></td>
+       <th scope="row">{{ i.id }}</th>
+       <td>
+           <input class="cost-centre-edit d-none form-control" type="text" name="name" value="{{ i.name }}" />
+           <div class="cost-centre-display">{{ i.name }}</div>
+       </td>
+       <td class="text-end">
+           <a href="/cost_centres" type="button" class="btn btn-success d-none btn-cost-centre-save" hx-put="/cost_centre/{{ i.id }}" hx-include="closest tr">Speichern</a>
+           <a href="/cost_centre/{{ i.id }}/edit" type="button" class="btn btn-secondary btn-cost-centre-edit">Bearbeiten</a>
+           <a href="/cost_centre/{{ i.id }}/delete" type="button" class="btn btn-danger">Löschen</a>
+       </td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
+
+<script type="text/javascript">
+    [...document.querySelectorAll('.btn-cost-centre-edit')].forEach(node => {
+        node.addEventListener('click', event => {
+            const row = node.closest('tr');
+            row.querySelector('input.cost-centre-edit').classList.remove('d-none');
+            row.querySelector('.btn-cost-centre-save').classList.remove('d-none');
+            row.querySelector('.btn-cost-centre-edit').classList.add('d-none');
+            row.querySelector('.cost-centre-display').classList.add('d-none');
+            event.stopImmediatePropagation();
+            event.preventDefault();
+        });
+    });
+</script>
 
 <h3>Kostenstelle hinzufügen</h3>
 <form method="post">
@@ -28,6 +49,6 @@
     <div class="input-group mb-3">
         <input type="text" class="form-control" id="cost-centre-add-input" name="name" />
     </div>
-    <button class="btn btn-secondary">Hinzufügen</button>
+    <button class="btn btn-primary">Hinzufügen</button>
 </form>
 {% endblock content %}
