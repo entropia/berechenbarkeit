@@ -20,7 +20,10 @@
         <td>{{i.vendor}}</td>
         <td>{{i.invoice_number}}</td>
         <td>{{i.sum_gross}}&euro;</td>
-        <td><a href="/invoice/{{i.id.unwrap()}}/edit" type="button" class="btn btn-secondary">Edit</a></td>
+        <td>
+	    <a href="/invoice/{{i.id.unwrap()}}/edit" type="button" class="btn btn-secondary">Bearbeiten</a>
+            <a href="/invoice/{{i.id.unwrap()}}/pdf" type="button" target="_blank" class="btn btn-info">PDF</a>
+	</td>
     </tr>
     {% endfor %}
     </tbody>

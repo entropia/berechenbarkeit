@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<a href="/invoice/{{ invoice.id.unwrap() }}/pdf" target="_blank" class="btn btn-info float-end">PDF</a>
 <h2>Rechnung</h2>
 <h3>{{ invoice.vendor }} – {{ invoice.invoice_number }}</h3>
 

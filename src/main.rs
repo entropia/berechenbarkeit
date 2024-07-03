@@ -49,6 +49,7 @@ async fn main() {
     let app = Router::new()
         .route("/invoices", get(handlers::invoice::invoice_list))
         .route("/invoice/upload", post(handlers::invoice::invoice_add_upload)).layer(DefaultBodyLimit::max(10 * 1024 * 1024))
+        .route("/invoice/:invoice_id/pdf", get(handlers::invoice::download))
         .route("/invoice/:invoice_id/invoiceitem/:invoiceitem_id/split", post(handlers::invoice::invoice_item_split))
         .route("/invoice/:invoice_id/edit", get(handlers::invoice::invoice_edit).post(handlers::invoice::invoice_edit_submit))
         .route("/invoice/:invoice_id/delete", get(handlers::invoice::invoice_delete_confirm).post(handlers::invoice::invoice_delete))

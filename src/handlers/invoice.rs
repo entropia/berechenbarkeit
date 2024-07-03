@@ -1,10 +1,17 @@
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::Write;
+use std::io::{
+    Read,
+    Write,
+};
 use std::str::FromStr;
 use askama::Template;
 use axum::body::Bytes;
 use axum::extract::{Path, RawForm};
+use axum::http::{
+    StatusCode,
+    HeaderMap,
+};
 use axum::Json;
 use axum::response::{IntoResponse, Redirect};
 use serde::Serialize;
@@ -71,6 +78,22 @@ struct InvoiceEditTemplate {
     invoice_items: Vec<DBInvoiceItem>,
     cost_centres: Vec<DBCostCentre>,
     diff_invoice_item_sum: f64
+}
+
+pub(crate) async fn download(Path(invoice_id): Path<i64>) -> Result<(StatusCode, HeaderMap, Vec<u8>), impl IntoResponse> {
+    let file_storage_base_path = std::env::var("BERECHENBARKEIT_STORAGE_BASE_PATH");
+    let mut pdf_content: Vec<u8> = vec![];
+    if file_storage_base_path.is_ok() {
+        let filepath = format!("{}/invoice-{}.pdf", file_storage_base_path.unwrap(), invoice_id);
+        if File::open(filepath).and_then(|mut f| f.read_to_end(&mut pdf_content)).is_err() {
+            return Err((StatusCode::NOT_FOUND, "No invoice could be found"))
+        }
+    }
+    let mut response_headers = HeaderMap::new();
+    response_headers.insert("Content-Disposition", format!("attachment; filename=\"{}.pdf\"", invoice_id).parse().unwrap());
+    response_headers.insert("Content-Length", pdf_content.len().to_string().parse().unwrap());
+    response_headers.insert("Content-Type", "application/pdf".parse().unwrap());
+    Ok((StatusCode::OK, response_headers, pdf_content))
 }
 
 pub(crate) async fn invoice_edit(DatabaseConnection(mut conn): DatabaseConnection, Path(invoice_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
