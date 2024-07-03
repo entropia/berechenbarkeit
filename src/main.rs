@@ -19,6 +19,7 @@ use crate::config::Config;
 pub mod handlers;
 mod db;
 mod config;
+mod utils;
 
 #[tokio::main]
 async fn main() {
