@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: editorconfig-checker
+        name: 'Check .editorconfig rules'
+        description: 'Runs system executable of `editorconfig-checker` to lint text files according to `.editorconfig` rules'
+        language: system
+        entry: editorconfig-checker
+        types: [ text ]
+        require_serial: true
+      - id: rustfmt
+        name: "rustfmt"
+        description: Format files with cargo fmt.
+        entry: cargo fmt
+        language: system
+        types: [rust]
+        args: ["--"]
