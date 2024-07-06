@@ -1,19 +1,17 @@
 use std::{
-    path::PathBuf,
-    num::{ParseFloatError, ParseIntError},
     fmt,
+    num::{ParseFloatError, ParseIntError},
+    path::PathBuf,
 };
 
 use clap::Parser;
-use serde::Serialize;
-use thiserror::Error;
 use once_cell::sync::Lazy;
-use time::{PrimitiveDateTime, error::ComponentRange};
+use serde::Serialize;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
-use vendors::regex::{
-    METRO, BAUHAUS, IKEA, MEDICALCORNER, MOLTONDISCOUNT, KOKKU, ROHALM
-};
+use thiserror::Error;
+use time::{error::ComponentRange, PrimitiveDateTime};
+use vendors::regex::{BAUHAUS, IKEA, KOKKU, MEDICALCORNER, METRO, MOLTONDISCOUNT, ROHALM};
 
 pub mod vendors;
 
@@ -47,7 +45,7 @@ pub enum InvoiceVendor {
 #[derive(Debug, Clone, Serialize)]
 pub enum InvoiceItemType {
     Expense,
-    Credit
+    Credit,
 }
 
 pub enum InvoiceParser {
@@ -100,7 +98,7 @@ impl fmt::Display for InvoiceVendor {
             Self::MedicalCorner => write!(f, "MedicalCorner"),
             Self::MoltonDiscount => write!(f, "MoltonDiscount"),
             Self::Kokku => write!(f, "Kokku"),
-            Self::Rohalm => write!(f, "Rohalm")
+            Self::Rohalm => write!(f, "Rohalm"),
         }
     }
 }
@@ -129,9 +127,7 @@ impl From<InvoiceVendor> for InvoiceParser {
 }
 
 pub fn get_vendors() -> Vec<String> {
-    InvoiceVendor::iter()
-        .map(|vendor| vendor.to_string())
-        .collect()
+    InvoiceVendor::iter().map(|vendor| vendor.to_string()).collect()
 }
 
 pub fn get_parser_for_vendor(vendor: Option<InvoiceVendor>) -> Option<InvoiceParser> {

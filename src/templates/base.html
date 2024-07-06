@@ -39,9 +39,9 @@
             </ul>
             <form class="d-flex" id="form-upload" method="post" action="/invoice/upload" enctype="multipart/form-data">
                 <select class="form-select" name="vendor">
-                {% for vendor in berechenbarkeit_lib::get_vendors() %}
+                    {% for vendor in berechenbarkeit_lib::get_vendors() %}
                     <option {% if loop.first %}selected {% endif %}value="{{ vendor.to_lowercase() }}">{{ vendor }}</option>
-                {% endfor %}
+                    {% endfor %}
                 </select>
                 <input class="form-control" name="file" type="file" id="form-upload-input">
             </form>
@@ -66,4 +66,3 @@
 </script>
 </body>
 </html>
-

@@ -30,7 +30,7 @@
             <select class="form-control no-validate" id="invoice-edit-change-global-project">
                 <option {% if true %}selected{% endif %} value="" disabled><b>Projekt auswählen</b></option>
                 {% for project in projects %}
-                <option value="{{ project.id.unwrap() }}" {% if !project.active %}disabled{% endif %} >{{ project.name }}</option>
+                <option value="{{ project.id.unwrap() }}" {% if !project.active %}disabled{% endif %}>{{ project.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -63,7 +63,7 @@
             <select class="form-select invoice-edit-change-item-project" name="{{ ii.id.unwrap() }}-project">
                 <option {% if true %}selected{% endif %} value="" disabled>Auswählen</option>
                 {% for project in projects %}
-                    <option value="{{ project.id.unwrap() }}" {% if !project.active && (ii.project_id.is_none() || ii.project_id.unwrap() != project.id.unwrap()) %}disabled {% endif %}{% if ii.project_id.is_some() && ii.project_id.unwrap() == project.id.unwrap() %}selected{% endif %}>{{ project.name }}</option>
+                <option value="{{ project.id.unwrap() }}" {% if !project.active && (ii.project_id.is_none() || ii.project_id.unwrap() !=project.id.unwrap()) %}disabled {% endif %}{% if ii.project_id.is_some() && ii.project_id.unwrap() == project.id.unwrap() %}selected{% endif %}>{{ project.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -92,26 +92,26 @@
         }
 
         input.addEventListener('change', event => {
-           if (input.value === "") {
-               input.classList.remove("is-valid")
-               input.classList.add("is-invalid")
-           } else {
-               input.classList.remove("is-invalid")
-               input.classList.add("is-valid")
-           }
+            if (input.value === "") {
+                input.classList.remove("is-valid")
+                input.classList.add("is-invalid")
+            } else {
+                input.classList.remove("is-invalid")
+                input.classList.add("is-valid")
+            }
         }, false)
     });
 
     const buttons = document.querySelectorAll('.invoice-item-split-button');
     Array.from(buttons).forEach(button => {
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        fetch(`/invoice/{{invoice.id.unwrap()}}/invoiceitem/${button.dataset.id}/split`, {
-          method: "POST"
-        }).then(res => {
-          form.submit()
+        button.addEventListener("click", event => {
+            event.preventDefault();
+            fetch(`/invoice/{{invoice.id.unwrap()}}/invoiceitem/${button.dataset.id}/split`, {
+                method: "POST"
+            }).then(res => {
+                form.submit()
+            })
         })
-      })
     });
 
     document.querySelector('#invoice-edit-change-global-cost-centre').addEventListener('change', e => {

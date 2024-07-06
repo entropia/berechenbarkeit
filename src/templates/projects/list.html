@@ -17,19 +17,19 @@
         </tr>
     </thead>
     <tbody>
-    {% for i in projects %}
+        {% for i in projects %}
         <tr>
             <th scope="row">{{ i.id.unwrap() }}</th>
             <td>{{ i.name }}</td>
             <td>{{ i.description }}</td>
             <td>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" {% if i.active %}checked="{{ i.active }}"{% endif %} disabled />
+                    <input class="form-check-input" type="checkbox" {% if i.active %}checked="{{ i.active }}" {% endif %} disabled />
                 </div>
             </td>
             <td>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" {% if i.default %}checked="checked"{% endif %} disabled />
+                    <input class="form-check-input" type="radio" {% if i.default %}checked="checked" {% endif %} disabled />
                 </div>
             </td>
             <td><input type="datetime-local" class="form-control" value="{{ i.start }}" disabled /></td>
@@ -39,7 +39,7 @@
                 <a href="/projects/{{ i.id.unwrap() }}/delete" hx-delete="/projects/{{ i.id.unwrap() }}" hx-confirm="Projekt jetzt sofort loeschen?!?!1?" type="button" class="btn btn-danger btn-project-delete">Löschen</a>
             </td>
         </tr>
-    {% endfor %}
+        {% endfor %}
     </tbody>
 </table>
 <form class="mb-3">

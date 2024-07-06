@@ -1,28 +1,12 @@
-use std::fmt;
 use axum::{
     async_trait,
-    extract::{
-        FromRef,
-        FromRequestParts
-    },
-    http::{
-        StatusCode,
-        request::Parts,
-    },
+    extract::{FromRef, FromRequestParts},
+    http::{request::Parts, StatusCode},
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use sqlx::{
-    Postgres,
-    pool::PoolConnection,
-    postgres::PgPool
-};
-use time::{
-    macros::format_description,
-    PrimitiveDateTime,
-};
+use serde::{Deserialize, Serialize};
+use sqlx::{pool::PoolConnection, postgres::PgPool, Postgres};
+use std::fmt;
+use time::{macros::format_description, PrimitiveDateTime};
 
 pub(crate) type DBResult<T, E = sqlx::Error> = std::result::Result<T, E>;
 
@@ -42,15 +26,17 @@ impl fmt::Display for DbDate {
 }
 
 impl From<Option<PrimitiveDateTime>> for DbDate {
-    fn from(e: Option<PrimitiveDateTime>) -> Self{
-        DbDate {datetime: e}
+    fn from(e: Option<PrimitiveDateTime>) -> Self {
+        DbDate { datetime: e }
     }
 }
 
 #[async_trait]
 impl<S> FromRequestParts<S> for DatabaseConnection
-    where PgPool: FromRef<S>,
-          S: Send + Sync, {
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(_parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {

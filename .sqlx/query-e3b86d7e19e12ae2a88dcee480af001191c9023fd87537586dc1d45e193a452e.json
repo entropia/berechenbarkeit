@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT invoice.vendor as invoice_vendor, invoice.invoice_number, invoice.date AS invoice_date, invoice_item.*, cost_centre.name as \"cost_centre?\" FROM invoice_item LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id JOIN invoice ON invoice_item.invoice_id = invoice.id ORDER BY invoice.date,invoice.id,invoice_item.position,invoice_item.id",
+  "query": "SELECT\n                invoice.vendor AS invoice_vendor,\n                invoice.invoice_number,\n                invoice.date AS invoice_date,\n                invoice_item.*,\n                cost_centre.name AS \"cost_centre?\"\n            FROM invoice_item\n            LEFT OUTER JOIN cost_centre ON invoice_item.cost_centre_id = cost_centre.id\n            JOIN invoice ON invoice_item.invoice_id = invoice.id\n            ORDER BY\n                invoice.date,\n                invoice.id,\n                invoice_item.position,\n                invoice_item.id",
   "describe": {
     "columns": [
       {
@@ -100,5 +100,5 @@
       false
     ]
   },
-  "hash": "2776591813552924d67dc607ffd533cb033b8d258dbe5f39ffe00679bd3f5539"
+  "hash": "e3b86d7e19e12ae2a88dcee480af001191c9023fd87537586dc1d45e193a452e"
 }

@@ -1,6 +1,6 @@
+use crate::HtmlTemplate;
 use askama::Template;
 use axum::response::IntoResponse;
-use crate::HtmlTemplate;
 
 #[derive(Template)]
 #[template(path = "home.html")]

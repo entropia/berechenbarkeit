@@ -14,16 +14,16 @@
     <tbody>
     {% for i in cost_centres %}
     <tr>
-       <th scope="row">{{ i.id }}</th>
-       <td>
-           <input class="cost-centre-edit d-none form-control" type="text" name="name" value="{{ i.name }}" />
-           <div class="cost-centre-display">{{ i.name }}</div>
-       </td>
-       <td class="text-end">
-           <a href="/cost_centres" type="button" class="btn btn-success d-none btn-cost-centre-save" hx-put="/cost_centre/{{ i.id }}" hx-include="closest tr">Speichern</a>
-           <a href="/cost_centre/{{ i.id }}/edit" type="button" class="btn btn-secondary btn-cost-centre-edit">Bearbeiten</a>
-           <a href="/cost_centre/{{ i.id }}/delete" type="button" class="btn btn-danger">Löschen</a>
-       </td>
+        <th scope="row">{{ i.id }}</th>
+        <td>
+            <input class="cost-centre-edit d-none form-control" type="text" name="name" value="{{ i.name }}" />
+            <div class="cost-centre-display">{{ i.name }}</div>
+        </td>
+        <td class="text-end">
+            <a href="/cost_centres" type="button" class="btn btn-success d-none btn-cost-centre-save" hx-put="/cost_centre/{{ i.id }}" hx-include="closest tr">Speichern</a>
+            <a href="/cost_centre/{{ i.id }}/edit" type="button" class="btn btn-secondary btn-cost-centre-edit">Bearbeiten</a>
+            <a href="/cost_centre/{{ i.id }}/delete" type="button" class="btn btn-danger">Löschen</a>
+        </td>
     </tr>
     {% endfor %}
     </tbody>

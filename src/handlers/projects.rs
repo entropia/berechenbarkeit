@@ -1,24 +1,18 @@
 use askama::Template;
-use axum::extract::{Path};
-use axum::Form;
-use axum::response::Redirect;
+use axum::extract::Path;
 use axum::http::HeaderMap;
+use axum::response::Redirect;
+use axum::Form;
 use axum_core::response::IntoResponse;
 use serde::Deserialize;
-use time::{
-    macros::format_description,
-    PrimitiveDateTime,
-};
+use time::{macros::format_description, PrimitiveDateTime};
 
-use crate::{AppError, HtmlTemplate};
 use crate::db::{
-    util::{
-        DbDate,
-        DatabaseConnection
-    },
     projects::DBProject,
+    util::{DatabaseConnection, DbDate},
 };
 use crate::utils::make_htmx_redirect;
+use crate::{AppError, HtmlTemplate};
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct ProjectForm {
@@ -44,7 +38,7 @@ struct ProjectListTemplate {
 #[derive(Template)]
 #[template(path = "projects/edit.html")]
 struct ProjectEditTemplate {
-    project: DBProject
+    project: DBProject,
 }
 
 #[derive(Template)]
@@ -62,8 +56,12 @@ impl From<ProjectForm> for DBProject {
             description: e.description,
             active: html_checkbox_to_boolean(e.active),
             default: html_checkbox_to_boolean(e.default),
-            start: DbDate {datetime: parse_date_into_option(e.start)},
-            end: DbDate {datetime: parse_date_into_option(e.end)},
+            start: DbDate {
+                datetime: parse_date_into_option(e.start),
+            },
+            end: DbDate {
+                datetime: parse_date_into_option(e.end),
+            },
         }
     }
 }
@@ -77,37 +75,34 @@ pub(crate) async fn new_project_page() -> Result<impl IntoResponse, AppError> {
     Ok(HtmlTemplate(ProjectNewTemplate {}))
 }
 
-pub(crate) async fn edit_project_page(
-        DatabaseConnection(mut conn): DatabaseConnection,
-        Path(project_id): Path<i64>,
-    ) -> Result<impl IntoResponse, AppError> {
+pub(crate) async fn edit_project_page(DatabaseConnection(mut conn): DatabaseConnection, Path(project_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
     let project = DBProject::get_by_id(project_id, &mut conn).await?;
     Ok(HtmlTemplate(ProjectEditTemplate { project }))
 }
 
-pub(crate) async fn add(
-        DatabaseConnection(mut conn): DatabaseConnection,
-        Form(project_form): Form<ProjectForm>,
-    ) -> Result<impl IntoResponse, AppError> {
+pub(crate) async fn add(DatabaseConnection(mut conn): DatabaseConnection, Form(project_form): Form<ProjectForm>) -> Result<impl IntoResponse, AppError> {
     DBProject::add(DBProject::from(project_form), &mut conn).await?;
     Ok(Redirect::to("/projects"))
 }
 
 pub(crate) async fn update(
-        req_headers: HeaderMap,
-        DatabaseConnection(mut conn): DatabaseConnection,
-        Path(project_id): Path<i64>,
-        Form(project_form): Form<ProjectForm>,
-    ) -> Result<impl IntoResponse, AppError> {
-    DBProject::update(DBProject {id: Some(project_id), ..DBProject::from(project_form)}, &mut conn).await?;
+    req_headers: HeaderMap,
+    DatabaseConnection(mut conn): DatabaseConnection,
+    Path(project_id): Path<i64>,
+    Form(project_form): Form<ProjectForm>,
+) -> Result<impl IntoResponse, AppError> {
+    DBProject::update(
+        DBProject {
+            id: Some(project_id),
+            ..DBProject::from(project_form)
+        },
+        &mut conn,
+    )
+    .await?;
     make_htmx_redirect(req_headers, "/projects")
 }
 
-pub(crate) async fn delete(
-        req_headers: HeaderMap,
-        DatabaseConnection(mut conn): DatabaseConnection,
-        Path(project_id): Path<i64>
-    ) -> Result<impl IntoResponse, AppError> {
+pub(crate) async fn delete(req_headers: HeaderMap, DatabaseConnection(mut conn): DatabaseConnection, Path(project_id): Path<i64>) -> Result<impl IntoResponse, AppError> {
     DBProject::delete(project_id, &mut conn).await?;
     make_htmx_redirect(req_headers, "/projects")
 }
@@ -121,10 +116,7 @@ pub(crate) async fn set_default(
     make_htmx_redirect(req_headers, "/projects")
 }
 
-pub(crate) async fn clear_default(
-    req_headers: HeaderMap,
-    DatabaseConnection(mut conn): DatabaseConnection,
-) -> Result<impl IntoResponse, AppError> {
+pub(crate) async fn clear_default(req_headers: HeaderMap, DatabaseConnection(mut conn): DatabaseConnection) -> Result<impl IntoResponse, AppError> {
     DBProject::clear_default(&mut conn).await?;
     make_htmx_redirect(req_headers, "/projects")
 }
